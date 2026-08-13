@@ -67,7 +67,7 @@
     <!-- Загрузка -->
     <div id="loader" class="hidden flex flex-col items-center py-10 space-y-3">
       <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-      <p id="loaderText" class="text-indigo-400 font-medium text-sm">Связываемся с бэкендом...</p>
+      <p id="loaderText" class="text-indigo-400 font-medium text-sm">Тянем текст напрямую...</p>
     </div>
 
     <!-- Результат -->
@@ -101,32 +101,7 @@
   </div>
 
   <script>
-    // ВСТАВЬ СЮДА НОВУЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT !!!
-    // Обращение к открытому независимому API напрямую из браузера
-    async function fetchSubtitles(url) {
-      // 1. Вытаскиваем ID видео
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/shorts\/)([^#\&\?]*).*/;
-      const match = url.match(regExp);
-      const videoId = (match && match[2].length === 11) ? match[2] : null;
-      
-      if (!videoId) throw new Error("Неверная ссылка на видео");
-
-      // 2. Стучимся в открытый API (без блокировок CORS)
-      // Сначала запрашиваем русские субтитры
-      let res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt?lang=ru`);
-      
-      // Если русских нет, берем оригинальные
-      if (!res.ok) {
-        res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt`);
-      }
-
-      if (!res.ok) {
-        throw new Error("❌ API не смог вытащить субтитры. Скорее всего, автор их полностью запретил.");
-      }
-
-      // API отдает готовый текстовый документ с таймкодами, ИИ его отлично поймет
-      return await res.text();
-    }
+    // Никаких GAS_WEB_APP_URL больше нет, Гугл нам не указ!
 
     window.onload = () => {
       ['keyDeepseek', 'keyQwen', 'keyGemini'].forEach(id => {
@@ -141,21 +116,27 @@
       alert("✅ Ключи сохранены");
     }
 
-    // Обращение к нашему серверу GAS за субтитрами
+    // Обращение к открытому независимому API напрямую из браузера
     async function fetchSubtitles(url) {
-      if (GAS_WEB_APP_URL.includes("ВАШ_URL")) {
-        throw new Error("Вставьте ссылку на Google Apps Script в код страницы!");
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/shorts\/)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      const videoId = (match && match[2].length === 11) ? match[2] : null;
+      
+      if (!videoId) throw new Error("Неверная ссылка на видео");
+
+      // Сначала запрашиваем русские субтитры
+      let res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt?lang=ru`);
+      
+      // Если русских нет, берем оригинальные
+      if (!res.ok) {
+        res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt`);
       }
 
-      // Используем GET запрос, чтобы обойти CORS
-      const requestUrl = `${GAS_WEB_APP_URL}?url=${encodeURIComponent(url)}`;
-      const res = await fetch(requestUrl);
-      const data = await res.json();
-
-      if (!data.success) {
-        throw new Error(data.error);
+      if (!res.ok) {
+        throw new Error("❌ API не смог вытащить субтитры. Скорее всего, автор их полностью запретил.");
       }
-      return data.transcript;
+
+      return await res.text();
     }
 
     async function generateScript() {
@@ -181,7 +162,7 @@
       loader.classList.remove('hidden');
 
       try {
-        loaderText.innerText = "1/2: Тянем текст из видео через наш бэкенд...";
+        loaderText.innerText = "1/2: Тянем текст из видео...";
         const transcript = await fetchSubtitles(url);
 
         loaderText.innerText = `2/2: Переписываем сценарий через ${provider.toUpperCase()}...`;
