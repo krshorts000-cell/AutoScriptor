@@ -153,16 +153,16 @@
       loader.classList.remove('hidden');
 
       try {
-        // 1. Получаем транскрипт через бэкенд
+// 1. Получаем транскрипт через бэкенд
         loaderText.innerText = "1/2: Извлекаем субтитры из видео...";
         const gasRes = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8' // ИМЕННО text/plain спасает от CORS
+          },
           body: JSON.stringify({ url: url })
         });
         const gasData = await gasRes.json();
-        
-        if (!gasData.success) throw new Error("Ошибка видео: " + gasData.error);
-        const transcript = gasData.transcript;
 
         // 2. Отправляем в нейросеть
         loaderText.innerText = `2/2: Генерируем сценарий через ${provider.toUpperCase()}...`;
