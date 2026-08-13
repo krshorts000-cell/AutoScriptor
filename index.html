@@ -6,95 +6,94 @@
   <title>AI Video Script Cloner</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8 font-sans">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8 font-sans">
   <div class="max-w-5xl mx-auto space-y-8">
     
     <header class="text-center space-y-3">
-      <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+      <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
         AI Video Cloner
       </h1>
-      <p class="text-gray-400">Клонируй структуру виральных видео и получай сценарии с высоким удержанием</p>
+      <p class="text-slate-400">Клонируй структуру чужих видео и получай готовый виральный сценарий</p>
     </header>
 
-    <!-- Блок настроек API -->
-    <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
+    <!-- Настройки API -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-gray-200">🔑 API Ключи (Сохраняются в браузере)</h2>
-        <button onclick="saveKeys()" class="bg-gray-700 hover:bg-gray-600 text-sm px-4 py-2 rounded-lg transition-colors">
-          Сохранить ключи
+        <h2 class="text-lg font-bold text-slate-200">🔑 API Ключи (Сохраняются в браузере)</h2>
+        <button onclick="saveKeys()" class="bg-slate-700 hover:bg-slate-600 text-sm px-4 py-2 rounded-lg transition-colors">
+          💾 Сохранить
         </button>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">DeepSeek API Key</label>
-          <input type="password" id="keyDeepseek" placeholder="sk-..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          <label class="block text-xs font-semibold text-slate-400 mb-1">DeepSeek API Key</label>
+          <input type="password" id="keyDeepseek" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Qwen API Key</label>
-          <input type="password" id="keyQwen" placeholder="sk-..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Qwen API Key</label>
+          <input type="password" id="keyQwen" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Gemini API Key</label>
-          <input type="password" id="keyGemini" placeholder="AIzaSy..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-400 hover:underline mt-1 inline-block">Получить бесплатно в AI Studio</a>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Gemini API Key</label>
+          <input type="password" id="keyGemini" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
       </div>
     </div>
 
     <!-- Основная форма -->
-    <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg space-y-5">
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-5">
       <div>
-        <label class="block text-sm font-semibold text-gray-300 mb-2">Ссылка на YouTube видео или Shorts</label>
-        <input type="url" id="videoUrl" placeholder="https://www.youtube.com/shorts/..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 outline-none">
+        <label class="block text-sm font-semibold text-slate-300 mb-2">Ссылка на видео или Shorts</label>
+        <input type="url" id="videoUrl" placeholder="https://www.youtube.com/shorts/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none">
       </div>
 
       <div class="flex flex-col md:flex-row gap-4">
         <div class="w-full md:w-1/3">
-          <label class="block text-sm font-semibold text-gray-300 mb-2">Нейросеть</label>
-          <select id="aiProvider" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+          <label class="block text-sm font-semibold text-slate-300 mb-2">Нейросеть</label>
+          <select id="aiProvider" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer">
             <option value="deepseek">DeepSeek V3</option>
             <option value="gemini">Google Gemini 1.5</option>
             <option value="qwen">Qwen Max</option>
           </select>
         </div>
         <div class="w-full md:w-2/3 flex items-end">
-          <button onclick="generateScript()" id="submitBtn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg transform active:scale-[0.98]">
+          <button onclick="generateScript()" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg transform active:scale-[0.98]">
             🚀 Сгенерировать контент
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Индикатор загрузки -->
+    <!-- Загрузка -->
     <div id="loader" class="hidden flex flex-col items-center py-10 space-y-3">
-      <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <p id="loaderText" class="text-blue-400 font-medium text-sm">Связываемся с бэкендом...</p>
+      <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <p id="loaderText" class="text-indigo-400 font-medium text-sm">Связываемся с бэкендом...</p>
     </div>
 
-    <!-- Результаты -->
+    <!-- Результат -->
     <div id="resultContainer" class="hidden space-y-6">
-      <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
-        <h3 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500 mb-2">🔥 Идеи заголовка & Хук</h3>
-        <p id="resTitle" class="font-bold text-gray-200 mb-2"></p>
-        <p id="resHook" class="text-lg italic text-gray-400 border-l-4 border-orange-500 pl-4"></p>
+      <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+        <h3 class="text-xl font-black text-amber-400 mb-2">🔥 Идеи заголовка & Хук</h3>
+        <p id="resTitle" class="font-bold text-slate-200 mb-2"></p>
+        <p id="resHook" class="text-lg italic text-slate-400 border-l-4 border-amber-500 pl-4"></p>
       </div>
 
-      <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
-        <h3 class="text-xl font-black text-blue-400 mb-4">📜 Сценарий (Адаптировано для удержания)</h3>
-        <div id="resScript" class="whitespace-pre-wrap text-gray-300 leading-relaxed font-medium"></div>
+      <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+        <h3 class="text-xl font-black text-indigo-400 mb-4">📜 Сценарий</h3>
+        <div id="resScript" class="whitespace-pre-wrap text-slate-300 leading-relaxed font-medium"></div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
-          <h3 class="font-bold text-green-400 mb-3">📌 Описание & SEO теги</h3>
-          <p id="resSEO" class="text-sm text-gray-300 mb-4 whitespace-pre-wrap"></p>
-          <div class="bg-gray-900 p-3 rounded-lg">
-            <p id="resTags" class="text-xs text-blue-300 font-mono break-words"></p>
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+          <h3 class="font-bold text-emerald-400 mb-3">📌 Описание & Теги</h3>
+          <p id="resSEO" class="text-sm text-slate-300 mb-4 whitespace-pre-wrap"></p>
+          <div class="bg-slate-900 p-3 rounded-lg">
+            <p id="resTags" class="text-xs text-indigo-300 font-mono break-words"></p>
           </div>
         </div>
-        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
-          <h3 class="font-bold text-purple-400 mb-3">🎬 Видеоряд (B-Roll для быстрого монтажа)</h3>
-          <p id="resVisuals" class="text-sm text-gray-300 whitespace-pre-wrap"></p>
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+          <h3 class="font-bold text-purple-400 mb-3">🎬 B-Roll (Монтаж)</h3>
+          <p id="resVisuals" class="text-sm text-slate-300 whitespace-pre-wrap"></p>
         </div>
       </div>
     </div>
@@ -102,10 +101,9 @@
   </div>
 
   <script>
-    // Твоя рабочая ссылка на Google Apps Script (Бэкенд)
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycby-UzRg0cm3fWgY3U9Q5z4oV_CtojCZj3ra8upYvrGCy1ob7NjYDZ6DqFdxqGagJEMi/exec";
+    // ВСТАВЬ СЮДА НОВУЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT !!!
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyq5UAFlfxIcuh1CqaJDLyR99uX9To401nHdiqwF6hjfZh96om3tqgfocFQncBAu5wT/exec";
 
-    // Загрузка ключей при старте страницы
     window.onload = () => {
       ['keyDeepseek', 'keyQwen', 'keyGemini'].forEach(id => {
         if (localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id);
@@ -116,20 +114,23 @@
       ['keyDeepseek', 'keyQwen', 'keyGemini'].forEach(id => {
         localStorage.setItem(id, document.getElementById(id).value.trim());
       });
-      alert("✅ Ключи сохранены в браузере");
+      alert("✅ Ключи сохранены");
     }
 
     // Обращение к нашему серверу GAS за субтитрами
     async function fetchSubtitles(url) {
-      // Используем GET запрос, чтобы обойти блокировки CORS в браузере
+      if (GAS_WEB_APP_URL.includes("ВАШ_URL")) {
+        throw new Error("Вставьте ссылку на Google Apps Script в код страницы!");
+      }
+
+      // Используем GET запрос, чтобы обойти CORS
       const requestUrl = `${GAS_WEB_APP_URL}?url=${encodeURIComponent(url)}`;
       const res = await fetch(requestUrl);
       const data = await res.json();
 
       if (!data.success) {
-        throw new Error(data.error || "Не удалось получить субтитры с сервера.");
+        throw new Error(data.error);
       }
-
       return data.transcript;
     }
 
@@ -147,31 +148,21 @@
         gemini: document.getElementById('keyGemini').value.trim()
       };
 
-      if (!keys[provider]) {
-        alert(`❌ Укажите API-ключ для ${provider.toUpperCase()}`);
-        return;
-      }
-      if (!url) {
-        alert("❌ Вставьте ссылку на видео");
-        return;
-      }
+      if (!keys[provider]) return alert(`❌ Укажите ключ для ${provider.toUpperCase()}`);
+      if (!url) return alert("❌ Вставьте ссылку на видео");
 
-      // Блокируем кнопку и показываем лоадер
       btn.disabled = true;
       btn.classList.add('opacity-50');
       resultContainer.classList.add('hidden');
       loader.classList.remove('hidden');
 
       try {
-        // Шаг 1: Парсим видео через наш бэкенд на GAS
-        loaderText.innerText = "1/2: Извлекаем текст из видео через сервер...";
+        loaderText.innerText = "1/2: Тянем текст из видео через наш бэкенд...";
         const transcript = await fetchSubtitles(url);
 
-        // Шаг 2: Отправляем текст в выбранную нейросеть
-        loaderText.innerText = `2/2: Генерируем сценарий через ${provider.toUpperCase()}...`;
+        loaderText.innerText = `2/2: Переписываем сценарий через ${provider.toUpperCase()}...`;
         const aiData = await callAI(provider, keys[provider], transcript);
 
-        // Вывод результатов в интерфейс
         document.getElementById('resTitle').innerText = Array.isArray(aiData.title) ? aiData.title.join(' | ') : aiData.title;
         document.getElementById('resHook').innerText = aiData.hook;
         document.getElementById('resScript').innerText = aiData.script;
@@ -182,7 +173,7 @@
         resultContainer.classList.remove('hidden');
 
       } catch (err) {
-        alert("⚠️ Ошибка:\n" + err.message);
+        alert("⚠️ Ошибка: " + err.message);
       } finally {
         loader.classList.add('hidden');
         btn.disabled = false;
@@ -191,16 +182,15 @@
     }
 
     async function callAI(provider, key, text) {
-      const prompt = `Ты эксперт по контенту на YouTube и созданию Shorts/Reels с высоким удержанием аудитории. 
-Твоя задача: переписать этот сценарий своими словами, сохранив быструю динамику и структуру для монтажа, но сделать его уникальным и виральным.
-Формат ответа СТРОГО в JSON (без лишнего текста и без маркдауна):
+      const prompt = `Ты профи по контенту на YouTube. Перепиши этот сценарий своими словами, сохранив быструю динамику для удержания.
+Формат ответа СТРОГО в JSON (без лишнего текста и маркдауна):
 {
-  "title": "3 варианта кликабельного заголовка",
-  "hook": "Мощный хук для первых 3 секунд, чтобы зритель не свайпнул",
-  "script": "Полный текст нового сценария, разделенный на короткие абзацы для динамичной озвучки",
-  "visuals": "Идеи для быстрого монтажа и B-roll кадров",
+  "title": "3 варианта заголовка",
+  "hook": "Мощный хук для первых 3 секунд",
+  "script": "Полный текст нового сценария (короткие абзацы)",
+  "visuals": "Идеи для B-roll кадров",
   "seo_description": "SEO описание",
-  "hashtags": "#тег1 #тег2 #тег3"
+  "hashtags": "#тег1 #тег2"
 }`;
 
       let endpoint, headers, body;
@@ -231,13 +221,12 @@
       const res = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify(body) });
       const rawData = await res.json();
 
-      if (!res.ok) throw new Error(rawData.error?.message || "Ошибка API нейросети");
+      if (!res.ok) throw new Error(rawData.error?.message || "Ошибка API");
 
       let contentStr = provider === 'gemini' 
         ? rawData.candidates[0].content.parts[0].text 
         : rawData.choices[0].message.content;
 
-      // Очистка от возможных Markdown тегов (например ```json)
       contentStr = contentStr.replace(/```json/gi, '').replace(/```/gi, '').trim();
       return JSON.parse(contentStr);
     }
