@@ -13,7 +13,7 @@
       <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
         AI Video Cloner
       </h1>
-      <p class="text-gray-400">Клонируй структуру виральных видео 100% в браузере (без бэкенда)</p>
+      <p class="text-gray-400">Клонируй структуру виральных видео и получай сценарии с высоким удержанием</p>
     </header>
 
     <!-- Блок настроек API -->
@@ -36,6 +36,7 @@
         <div>
           <label class="block text-xs font-semibold text-gray-400 mb-1">Gemini API Key</label>
           <input type="password" id="keyGemini" placeholder="AIzaSy..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-400 hover:underline mt-1 inline-block">Получить бесплатно в AI Studio</a>
         </div>
       </div>
     </div>
@@ -44,7 +45,7 @@
     <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg space-y-5">
       <div>
         <label class="block text-sm font-semibold text-gray-300 mb-2">Ссылка на YouTube видео или Shorts</label>
-        <input type="url" id="videoUrl" placeholder="https://youtube.com/shorts/..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 outline-none">
+        <input type="url" id="videoUrl" placeholder="https://www.youtube.com/shorts/..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 outline-none">
       </div>
 
       <div class="flex flex-col md:flex-row gap-4">
@@ -67,7 +68,7 @@
     <!-- Индикатор загрузки -->
     <div id="loader" class="hidden flex flex-col items-center py-10 space-y-3">
       <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <p id="loaderText" class="text-blue-400 font-medium text-sm">Извлекаем субтитры напрямую...</p>
+      <p id="loaderText" class="text-blue-400 font-medium text-sm">Связываемся с бэкендом...</p>
     </div>
 
     <!-- Результаты -->
@@ -79,7 +80,7 @@
       </div>
 
       <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
-        <h3 class="text-xl font-black text-blue-400 mb-4">📜 Сценарий</h3>
+        <h3 class="text-xl font-black text-blue-400 mb-4">📜 Сценарий (Адаптировано для удержания)</h3>
         <div id="resScript" class="whitespace-pre-wrap text-gray-300 leading-relaxed font-medium"></div>
       </div>
 
@@ -92,7 +93,7 @@
           </div>
         </div>
         <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
-          <h3 class="font-bold text-purple-400 mb-3">🎬 Видеоряд (B-Roll)</h3>
+          <h3 class="font-bold text-purple-400 mb-3">🎬 Видеоряд (B-Roll для быстрого монтажа)</h3>
           <p id="resVisuals" class="text-sm text-gray-300 whitespace-pre-wrap"></p>
         </div>
       </div>
@@ -101,7 +102,10 @@
   </div>
 
   <script>
-    // Загрузка ключей при старте
+    // Твоя рабочая ссылка на Google Apps Script (Бэкенд)
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycby-UzRg0cm3fWgY3U9Q5z4oV_CtojCZj3ra8upYvrGCy1ob7NjYDZ6DqFdxqGagJEMi/exec";
+
+    // Загрузка ключей при старте страницы
     window.onload = () => {
       ['keyDeepseek', 'keyQwen', 'keyGemini'].forEach(id => {
         if (localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id);
@@ -114,78 +118,19 @@
       });
       alert("✅ Ключи сохранены в браузере");
     }
-// 100% Клиентский парсер субтитров (Прямой скрапинг YouTube через CORS-прокси)
-// 100% Клиентский парсер субтитров (Бронебойный вариант через Invidious + Piped API)
+
+    // Обращение к нашему серверу GAS за субтитрами
     async function fetchSubtitles(url) {
-      // 1. Достаем ID видео
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/shorts\/)([^#\&\?]*).*/;
-      const match = url.match(regExp);
-      const videoId = (match && match[2].length === 11) ? match[2] : null;
+      // Используем GET запрос, чтобы обойти блокировки CORS в браузере
+      const requestUrl = `${GAS_WEB_APP_URL}?url=${encodeURIComponent(url)}`;
+      const res = await fetch(requestUrl);
+      const data = await res.json();
 
-      if (!videoId) throw new Error("Неверная ссылка на видео");
-
-      // 2. Список открытых API-зеркал Ютуба (Они обходят капчи и отдают чистые данные)
-      const apis = [
-        { type: 'piped', url: 'https://pipedapi.kavin.rocks' },
-        { type: 'invidious', url: 'https://inv.tux.pizza' },
-        { type: 'piped', url: 'https://pipedapi.tokhmi.xyz' },
-        { type: 'invidious', url: 'https://invidious.asir.dev' },
-        { type: 'invidious', url: 'https://vid.puffyan.us' }
-      ];
-
-      for (let api of apis) {
-        try {
-          if (api.type === 'piped') {
-            const res = await fetch(`${api.url}/streams/${videoId}`);
-            if (!res.ok) continue;
-            const data = await res.json();
-            
-            if (!data.subtitles || data.subtitles.length === 0) continue;
-            
-            // Ищем русские или берем первые попавшиеся
-            let track = data.subtitles.find(s => s.code === 'ru') || data.subtitles.find(s => s.code === 'en') || data.subtitles[0];
-            
-            const subRes = await fetch(track.url);
-            if (!subRes.ok) continue;
-            const text = await subRes.text();
-            
-            const clean = cleanText(text);
-            if (clean.length > 10) return clean;
-          } 
-          else if (api.type === 'invidious') {
-            const res = await fetch(`${api.url}/api/v1/videos/${videoId}`);
-            if (!res.ok) continue;
-            const data = await res.json();
-            
-            if (!data.captions || data.captions.length === 0) continue;
-            
-            let track = data.captions.find(c => c.languageCode === 'ru') || data.captions.find(c => c.languageCode === 'en') || data.captions[0];
-            
-            // Invidious отдает относительные ссылки, поэтому клеим их к домену
-            const subRes = await fetch(`${api.url}${track.url}`);
-            if (!subRes.ok) continue;
-            const text = await subRes.text();
-            
-            const clean = cleanText(text);
-            if (clean.length > 10) return clean;
-          }
-        } catch (e) {
-          console.warn(`Зеркало ${api.url} не ответило, пробуем следующее...`);
-        }
+      if (!data.success) {
+        throw new Error(data.error || "Не удалось получить субтитры с сервера.");
       }
-      
-      throw new Error("Все зеркала отклонили запрос. Ютуб жестко лютует, попробуйте другую ссылку.");
-    }
 
-    // Вспомогательная функция для жесткой очистки VTT/XML мусора
-    function cleanText(rawText) {
-      return rawText
-        .replace(/<[^>]+>/g, ' ') // Удаляем HTML/XML теги
-        .replace(/\d{2}:\d{2}:\d{2}\.\d{3}.*/g, '') // Удаляем таймкоды
-        .replace(/WEBVTT/g, '') // Удаляем VTT заголовки
-        .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-        .replace(/\s+/g, ' ') // Схлопываем лишние пробелы и переносы
-        .trim();
+      return data.transcript;
     }
 
     async function generateScript() {
@@ -211,21 +156,22 @@
         return;
       }
 
+      // Блокируем кнопку и показываем лоадер
       btn.disabled = true;
       btn.classList.add('opacity-50');
       resultContainer.classList.add('hidden');
       loader.classList.remove('hidden');
 
       try {
-        // Шаг 1: Парсим видео прямо из браузера!
-        loaderText.innerText = "1/2: Извлекаем текст из видео (напрямую)...";
+        // Шаг 1: Парсим видео через наш бэкенд на GAS
+        loaderText.innerText = "1/2: Извлекаем текст из видео через сервер...";
         const transcript = await fetchSubtitles(url);
 
-        // Шаг 2: Отправляем в ИИ
+        // Шаг 2: Отправляем текст в выбранную нейросеть
         loaderText.innerText = `2/2: Генерируем сценарий через ${provider.toUpperCase()}...`;
         const aiData = await callAI(provider, keys[provider], transcript);
 
-        // Вывод результатов
+        // Вывод результатов в интерфейс
         document.getElementById('resTitle').innerText = Array.isArray(aiData.title) ? aiData.title.join(' | ') : aiData.title;
         document.getElementById('resHook').innerText = aiData.hook;
         document.getElementById('resScript').innerText = aiData.script;
@@ -245,8 +191,8 @@
     }
 
     async function callAI(provider, key, text) {
-      const prompt = `Ты эксперт по контенту на YouTube и создании Shorts/Reels с высоким удержанием. 
-Перепиши этот сценарий своими словами, сохранив динамику и структуру для быстрого монтажа, но сделай его уникальным и виральным.
+      const prompt = `Ты эксперт по контенту на YouTube и созданию Shorts/Reels с высоким удержанием аудитории. 
+Твоя задача: переписать этот сценарий своими словами, сохранив быструю динамику и структуру для монтажа, но сделать его уникальным и виральным.
 Формат ответа СТРОГО в JSON (без лишнего текста и без маркдауна):
 {
   "title": "3 варианта кликабельного заголовка",
@@ -291,6 +237,7 @@
         ? rawData.candidates[0].content.parts[0].text 
         : rawData.choices[0].message.content;
 
+      // Очистка от возможных Markdown тегов (например ```json)
       contentStr = contentStr.replace(/```json/gi, '').replace(/```/gi, '').trim();
       return JSON.parse(contentStr);
     }
