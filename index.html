@@ -102,7 +102,31 @@
 
   <script>
     // ВСТАВЬ СЮДА НОВУЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT !!!
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxxrqSYlZLSQ4dP9GxkJdosXlbywK37SAwL1WDTY6HROzudaGSVYPLTfCVnhadyWR5O/exec";
+    // Обращение к открытому независимому API напрямую из браузера
+    async function fetchSubtitles(url) {
+      // 1. Вытаскиваем ID видео
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/shorts\/)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      const videoId = (match && match[2].length === 11) ? match[2] : null;
+      
+      if (!videoId) throw new Error("Неверная ссылка на видео");
+
+      // 2. Стучимся в открытый API (без блокировок CORS)
+      // Сначала запрашиваем русские субтитры
+      let res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt?lang=ru`);
+      
+      // Если русских нет, берем оригинальные
+      if (!res.ok) {
+        res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt`);
+      }
+
+      if (!res.ok) {
+        throw new Error("❌ API не смог вытащить субтитры. Скорее всего, автор их полностью запретил.");
+      }
+
+      // API отдает готовый текстовый документ с таймкодами, ИИ его отлично поймет
+      return await res.text();
+    }
 
     window.onload = () => {
       ['keyDeepseek', 'keyQwen', 'keyGemini'].forEach(id => {
