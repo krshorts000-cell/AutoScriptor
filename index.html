@@ -201,7 +201,7 @@
       let endpoint, headers, body;
 
       if (provider === 'gemini') {
-        endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`;
         headers = { "Content-Type": "application/json" };
         body = {
           contents: [{ role: "user", parts: [{ text: prompt + "\n\nИсходник:\n" + text }] }],
