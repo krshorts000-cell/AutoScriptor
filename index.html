@@ -13,7 +13,7 @@
       <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
         AI Video Cloner
       </h1>
-      <p class="text-gray-400">Клонируй структуру виральных видео и получай готовый сценарий для быстрой записи и монтажа</p>
+      <p class="text-gray-400">Клонируй структуру виральных видео 100% в браузере (без бэкенда)</p>
     </header>
 
     <!-- Блок настроек API -->
@@ -36,7 +36,6 @@
         <div>
           <label class="block text-xs font-semibold text-gray-400 mb-1">Gemini API Key</label>
           <input type="password" id="keyGemini" placeholder="AIzaSy..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-400 hover:underline mt-1 inline-block">Получить бесплатно в AI Studio</a>
         </div>
       </div>
     </div>
@@ -52,8 +51,8 @@
         <div class="w-full md:w-1/3">
           <label class="block text-sm font-semibold text-gray-300 mb-2">Нейросеть</label>
           <select id="aiProvider" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
-            <option value="gemini">Google Gemini 1.5 (Быстро)</option>
             <option value="deepseek">DeepSeek V3</option>
+            <option value="gemini">Google Gemini 1.5</option>
             <option value="qwen">Qwen Max</option>
           </select>
         </div>
@@ -68,7 +67,7 @@
     <!-- Индикатор загрузки -->
     <div id="loader" class="hidden flex flex-col items-center py-10 space-y-3">
       <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <p id="loaderText" class="text-blue-400 font-medium text-sm">Подключаемся к видео...</p>
+      <p id="loaderText" class="text-blue-400 font-medium text-sm">Извлекаем субтитры напрямую...</p>
     </div>
 
     <!-- Результаты -->
@@ -80,7 +79,7 @@
       </div>
 
       <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
-        <h3 class="text-xl font-black text-blue-400 mb-4">📜 Сценарий (Адаптировано для удержания)</h3>
+        <h3 class="text-xl font-black text-blue-400 mb-4">📜 Сценарий</h3>
         <div id="resScript" class="whitespace-pre-wrap text-gray-300 leading-relaxed font-medium"></div>
       </div>
 
@@ -93,7 +92,7 @@
           </div>
         </div>
         <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg">
-          <h3 class="font-bold text-purple-400 mb-3">🎬 Видеоряд (B-Roll для быстрого монтажа)</h3>
+          <h3 class="font-bold text-purple-400 mb-3">🎬 Видеоряд (B-Roll)</h3>
           <p id="resVisuals" class="text-sm text-gray-300 whitespace-pre-wrap"></p>
         </div>
       </div>
@@ -102,10 +101,7 @@
   </div>
 
   <script>
-    // === ВАЖНО: ВСТАВЬ СЮДА СВОЮ НОВУЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT ===
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx78Y2JCkEH0GR_sjaOdl0njBx-ecLf6LBj1cfm5qcCJXphkOl8YrvKIJy_8IBdw_fB/exec";
-
-    // Инициализация ключей при загрузке страницы
+    // Загрузка ключей при старте
     window.onload = () => {
       ['keyDeepseek', 'keyQwen', 'keyGemini'].forEach(id => {
         if (localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id);
@@ -116,7 +112,56 @@
       ['keyDeepseek', 'keyQwen', 'keyGemini'].forEach(id => {
         localStorage.setItem(id, document.getElementById(id).value.trim());
       });
-      alert("✅ Ключи надежно сохранены в вашем браузере");
+      alert("✅ Ключи сохранены в браузере");
+    }
+
+    // 100% Клиентский парсер субтитров (без бэкенда)
+    async function fetchSubtitles(url) {
+      // 1. Достаем ID видео
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/shorts\/)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      const videoId = (match && match[2].length === 11) ? match[2] : null;
+
+      if (!videoId) throw new Error("Неверная ссылка на видео");
+
+      // 2. Список открытых инстансов (если один упал, скрипт проверит следующий)
+      const apis = [
+        "https://pipedapi.kavin.rocks",
+        "https://pipedapi.tokhmi.xyz",
+        "https://pipedapi.smnz.de"
+      ];
+
+      for (let api of apis) {
+        try {
+          const res = await fetch(`${api}/streams/${videoId}`);
+          if (!res.ok) continue;
+          const data = await res.json();
+          
+          if (!data.subtitles || data.subtitles.length === 0) continue;
+
+          // Ищем русские, английские или берем первые доступные
+          let subTrack = data.subtitles.find(s => s.code === 'ru') || 
+                         data.subtitles.find(s => s.code === 'en') || 
+                         data.subtitles[0];
+
+          const subRes = await fetch(subTrack.url);
+          const rawText = await subRes.text();
+
+          // Очищаем субтитры (VTT/XML) от таймкодов и тегов
+          const cleanText = rawText
+            .replace(/<[^>]+>/g, ' ') // Удаляем HTML теги
+            .replace(/\d{2}:\d{2}:\d{2}\.\d{3}.*/g, '') // Удаляем таймкоды
+            .replace(/WEBVTT/g, '') // Удаляем заголовок
+            .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+            .replace(/\s+/g, ' ') // Убираем лишние пробелы
+            .trim();
+          
+          if (cleanText) return cleanText;
+        } catch (e) {
+          console.warn("API не ответил:", api);
+        }
+      }
+      throw new Error("Не удалось получить субтитры (возможно, они отключены автором или видео недоступно).");
     }
 
     async function generateScript() {
@@ -141,33 +186,22 @@
         alert("❌ Вставьте ссылку на видео");
         return;
       }
-      if (GAS_WEB_APP_URL.includes("ВАШ_URL")) {
-        alert("❌ Вы не указали свою ссылку GAS_WEB_APP_URL в коде страницы!");
-        return;
-      }
 
-      // Блокируем кнопку и показываем загрузку
       btn.disabled = true;
       btn.classList.add('opacity-50');
       resultContainer.classList.add('hidden');
       loader.classList.remove('hidden');
 
       try {
-        // 1. Получаем транскрипт через бэкенд (Используем надежный GET запрос для обхода CORS)
-        loaderText.innerText = "1/2: Обходим блокировки и извлекаем субтитры...";
-        
-        const requestUrl = `${GAS_WEB_APP_URL}?url=${encodeURIComponent(url)}`;
-        const gasRes = await fetch(requestUrl);
-        const gasData = await gasRes.json();
-        
-        if (!gasData.success) throw new Error("Ошибка парсинга видео: " + gasData.error);
-        const transcript = gasData.transcript;
+        // Шаг 1: Парсим видео прямо из браузера!
+        loaderText.innerText = "1/2: Извлекаем текст из видео (напрямую)...";
+        const transcript = await fetchSubtitles(url);
 
-        // 2. Отправляем текст в выбранную нейросеть
+        // Шаг 2: Отправляем в ИИ
         loaderText.innerText = `2/2: Генерируем сценарий через ${provider.toUpperCase()}...`;
         const aiData = await callAI(provider, keys[provider], transcript);
 
-        // 3. Выводим результаты на экран
+        // Вывод результатов
         document.getElementById('resTitle').innerText = Array.isArray(aiData.title) ? aiData.title.join(' | ') : aiData.title;
         document.getElementById('resHook').innerText = aiData.hook;
         document.getElementById('resScript').innerText = aiData.script;
@@ -178,9 +212,8 @@
         resultContainer.classList.remove('hidden');
 
       } catch (err) {
-        alert("⚠️ Произошла ошибка:\n" + err.message);
+        alert("⚠️ Ошибка:\n" + err.message);
       } finally {
-        // Возвращаем интерфейс в исходное состояние
         loader.classList.add('hidden');
         btn.disabled = false;
         btn.classList.remove('opacity-50');
@@ -188,7 +221,6 @@
     }
 
     async function callAI(provider, key, text) {
-      // Промпт оптимизирован для динамичного контента и высокого удержания
       const prompt = `Ты эксперт по контенту на YouTube и создании Shorts/Reels с высоким удержанием. 
 Перепиши этот сценарий своими словами, сохранив динамику и структуру для быстрого монтажа, но сделай его уникальным и виральным.
 Формат ответа СТРОГО в JSON (без лишнего текста и без маркдауна):
@@ -235,9 +267,7 @@
         ? rawData.candidates[0].content.parts[0].text 
         : rawData.choices[0].message.content;
 
-      // Очистка от возможных Markdown тегов, если нейросеть всё же их добавит
       contentStr = contentStr.replace(/```json/gi, '').replace(/```/gi, '').trim();
-      
       return JSON.parse(contentStr);
     }
   </script>
