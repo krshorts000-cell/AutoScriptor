@@ -114,8 +114,7 @@
       });
       alert("✅ Ключи сохранены в браузере");
     }
-
-    // 100% Клиентский парсер субтитров (без бэкенда)
+// 100% Клиентский парсер субтитров (Прямой скрапинг YouTube через CORS-прокси)
     async function fetchSubtitles(url) {
       // 1. Достаем ID видео
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/shorts\/)([^#\&\?]*).*/;
@@ -124,44 +123,56 @@
 
       if (!videoId) throw new Error("Неверная ссылка на видео");
 
-      // 2. Список открытых инстансов (если один упал, скрипт проверит следующий)
-      const apis = [
-        "https://pipedapi.kavin.rocks",
-        "https://pipedapi.tokhmi.xyz",
-        "https://pipedapi.smnz.de"
+      // 2. Список CORS-прокси для прямого доступа к коду страницы YouTube
+      const proxies = [
+        `https://corsproxy.io/?https://www.youtube.com/watch?v=${videoId}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`
       ];
 
-      for (let api of apis) {
+      let html = "";
+      for (let proxy of proxies) {
         try {
-          const res = await fetch(`${api}/streams/${videoId}`);
-          if (!res.ok) continue;
-          const data = await res.json();
-          
-          if (!data.subtitles || data.subtitles.length === 0) continue;
-
-          // Ищем русские, английские или берем первые доступные
-          let subTrack = data.subtitles.find(s => s.code === 'ru') || 
-                         data.subtitles.find(s => s.code === 'en') || 
-                         data.subtitles[0];
-
-          const subRes = await fetch(subTrack.url);
-          const rawText = await subRes.text();
-
-          // Очищаем субтитры (VTT/XML) от таймкодов и тегов
-          const cleanText = rawText
-            .replace(/<[^>]+>/g, ' ') // Удаляем HTML теги
-            .replace(/\d{2}:\d{2}:\d{2}\.\d{3}.*/g, '') // Удаляем таймкоды
-            .replace(/WEBVTT/g, '') // Удаляем заголовок
-            .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-            .replace(/\s+/g, ' ') // Убираем лишние пробелы
-            .trim();
-          
-          if (cleanText) return cleanText;
+          const res = await fetch(proxy);
+          if (res.ok) {
+            html = await res.text();
+            if (html.includes('captionTracks')) break; // Нашли кусок кода с сабами!
+          }
         } catch (e) {
-          console.warn("API не ответил:", api);
+          console.warn("Прокси не ответил:", proxy);
         }
       }
-      throw new Error("Не удалось получить субтитры (возможно, они отключены автором или видео недоступно).");
+
+      if (!html) throw new Error("Не удалось пробиться к YouTube. Попробуйте еще раз.");
+
+      // 3. Выдираем скрытый JSON с субтитрами прямо из HTML-кода страницы
+      const captionMatch = html.match(/"captionTracks":(\[.*?\])/);
+      if (!captionMatch) {
+         throw new Error("Субтитры реально отсутствуют (даже автосгенерированные).");
+      }
+
+      const tracks = JSON.parse(captionMatch[1]);
+      
+      // Ищем русские, английские или берем первый доступный язык
+      let track = tracks.find(t => t.languageCode === 'ru') || 
+                  tracks.find(t => t.languageCode === 'en') || 
+                  tracks[0];
+
+      // 4. Скачиваем сам XML файл с текстом (тоже через прокси на всякий случай)
+      const subRes = await fetch(`https://corsproxy.io/?${encodeURIComponent(track.baseUrl)}`);
+      const subXml = await subRes.text();
+
+      // 5. Жесткая очистка от таймкодов и XML-тегов, оставляем только чистый текст
+      const cleanText = subXml
+        .replace(/<[^>]+>/g, ' ') 
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\s+/g, ' ')
+        .trim();
+        
+      if (!cleanText) throw new Error("Текст субтитров оказался пустым.");
+      
+      return cleanText;
     }
 
     async function generateScript() {
