@@ -6,6 +6,21 @@
   <title>AutoScriptor Mobile & CapCut Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
   <style>
     * { -webkit-tap-highlight-color: transparent; }
     .tab-btn.active {
@@ -101,38 +116,132 @@
     .capcut-pos-top { margin-top: 1.5rem !important; margin-bottom: auto !important; }
     .capcut-pos-center { margin-top: auto !important; margin-bottom: auto !important; }
     .capcut-pos-bottom { margin-top: auto !important; margin-bottom: 2.5rem !important; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: #070a12;
+    }
+
+    /* Custom Sleek Scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.7);
+    }
+
+    /* Modern Glassmorphic Cards */
+    .glass-panel {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.85) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 25px -5px rgba(99, 102, 241, 0.06);
+    }
+    .glass-panel-glow {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.92) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6), 0 0 35px -5px rgba(99, 102, 241, 0.18);
+    }
+
+    /* Input & Select Focus Glows */
+    input[type="text"], input[type="password"], select {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    input[type="text"]:focus, input[type="password"]:focus, select:focus {
+      border-color: rgba(129, 140, 248, 0.9) !important;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22) !important;
+    }
+
+    /* Custom SVG Chevron for Selects */
+    select {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.75rem center;
+      background-repeat: no-repeat;
+      background-size: 1.1em 1.1em;
+      padding-right: 2.2rem !important;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    /* iOS/Figma Smooth Slider */
+    input[type="range"] {
+      height: 6px;
+      border-radius: 9999px;
+      background: rgba(30, 41, 59, 0.9);
+      accent-color: #6366f1;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a5b4fc, #6366f1);
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.6);
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    input[type="range"]::-webkit-slider-thumb:active {
+      transform: scale(1.2);
+    }
+
+    /* Phone Bezel */
+    .phone-mockup {
+      border-radius: 2.25rem;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 45px -5px rgba(99, 102, 241, 0.25), inset 0 0 0 1.5px rgba(255, 255, 255, 0.1);
+    }
 </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-3 pb-16 font-sans antialiased selection:bg-indigo-500 selection:text-white">
-  <div class="max-w-xl mx-auto space-y-4">
+<body class="bg-[#070a12] text-slate-100 min-h-screen p-3 sm:p-4 pb-20 font-sans antialiased selection:bg-indigo-500 selection:text-white relative">
+  <!-- Фоновое свечение (Ambient Mesh Glow) -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-b from-indigo-600/15 via-purple-600/10 to-transparent rounded-full blur-3xl"></div>
+    <div class="absolute top-[40%] -left-36 w-[350px] h-[350px] bg-cyan-600/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-[75%] -right-28 w-[380px] h-[380px] bg-amber-600/10 rounded-full blur-3xl"></div>
+  </div>
+  <div class="max-w-xl mx-auto space-y-4 relative z-10">
     
     <!-- Шапка приложения -->
-    <header class="text-center space-y-1 pt-2">
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+    <header class="text-center space-y-2 pt-2 relative z-10">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold shadow-lg shadow-emerald-500/5 backdrop-blur-md">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <i class="fa-brands fa-android"></i> <span id="appBadge">Android App + CapCut Studio</span>
+        <span class="text-[9px] bg-emerald-500/20 px-1.5 py-0.5 rounded-full text-emerald-300 font-mono">v2.5 Pro</span>
       </div>
-      <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400 tracking-tight">
+      <h1 class="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-purple-200 to-cyan-300 tracking-tight drop-shadow-sm">
         AutoScriptor
       </h1>
-      <p class="text-slate-400 text-xs max-w-sm mx-auto">
+      <p class="text-slate-400 text-xs max-w-sm mx-auto leading-relaxed">
         Клонирование виральных видео, AI сценарии и монтаж Shorts в стиле CapCut
       </p>
     </header>
 
     <!-- Главное переключение разделов: Радар Ниш vs Студия Shorts -->
-    <div class="grid grid-cols-2 p-1 bg-slate-900 rounded-2xl border border-slate-800 shadow-xl text-xs font-black">
-      <button id="navBtnTrends" onclick="switchMainTab('trends')" class="py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20">
+    <div class="grid grid-cols-2 p-1.5 bg-slate-900/80 rounded-2xl border border-white/[0.08] shadow-2xl backdrop-blur-xl text-xs font-black">
+      <button id="navBtnTrends" onclick="switchMainTab('trends')" class="py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/25 active:scale-[0.98]">
         <i class="fa-solid fa-fire text-yellow-200"></i>
         <span>🔥 Радар Ниш & Тренды</span>
       </button>
-      <button id="navBtnStudio" onclick="switchMainTab('studio')" class="py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white">
+      <button id="navBtnStudio" onclick="switchMainTab('studio')" class="py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-slate-400 hover:text-white active:scale-[0.98]">
         <i class="fa-solid fa-film text-indigo-400"></i>
         <span>🎬 Студия Shorts</span>
       </button>
     </div>
 
     <!-- Настройки API Ключей -->
-    <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+    <div class="glass-panel p-4 rounded-2xl space-y-3">
       <div class="flex items-center justify-between cursor-pointer" onclick="toggleApiSettings()">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-key text-amber-400 text-xs"></i>
@@ -510,7 +619,7 @@
     <!-- ============================================== -->
     <div id="viewStudio" class="hidden space-y-4">
 <!-- Ввод видео -->
-    <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 shadow-xl space-y-2.5">
+    <div class="glass-panel p-4 rounded-2xl space-y-3">
       <div>
         <div class="flex items-center justify-between mb-1">
           <label class="block text-xs font-bold text-slate-300">Тема видео ИЛИ ссылка на Shorts</label>
@@ -622,7 +731,7 @@
       <!-- ============================================== -->
       <!-- 🎬 СТУДИЯ МОНТАЖА CAPCUT (ИНТЕРАКТИВНЫЙ ХОЛСТ 9:16) -->
       <!-- ============================================== -->
-      <div class="bg-gradient-to-b from-indigo-950/60 via-slate-900 to-slate-950 p-4 rounded-2xl border-2 border-indigo-500/40 shadow-2xl space-y-4">
+      <div class="glass-panel-glow p-4 sm:p-5 rounded-3xl space-y-4">
         
         <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
           <div class="flex items-center gap-2">
@@ -642,7 +751,7 @@
         </div>
 
         <!-- 9:16 ПРЕВЬЮ ПЛЕЕР (ХОЛСТ CAPCUT) -->
-        <div class="relative max-w-[270px] sm:max-w-[300px] mx-auto aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border-2 border-indigo-500/50 bg-black flex flex-col justify-between p-4 select-none">
+        <div class="relative max-w-[275px] sm:max-w-[310px] mx-auto aspect-[9/16] phone-mockup overflow-hidden border-2 border-indigo-500/40 bg-black flex flex-col justify-between p-4 select-none">
           
           <!-- Фоновый слой (Анимированный градиент или видео) -->
           <div id="capcutBgLayer" class="absolute inset-0 bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-900 punch-zoom transition-transform duration-700"></div>
@@ -651,12 +760,22 @@
           <div id="capcutVignette" class="absolute inset-0 vignette-layer pointer-events-none transition-opacity duration-300"></div>
           <div id="capcutGrain" class="absolute inset-0 film-grain pointer-events-none opacity-20 mix-blend-overlay hidden"></div>
           
+          <!-- Dynamic Island / Камера смартфона -->
+          <div class="relative z-20 flex justify-center -mt-1 mb-1">
+            <div class="w-20 h-3.5 bg-black/90 rounded-full border border-white/10 flex items-center justify-center gap-1.5 shadow-md">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-800 border border-slate-700"></span>
+              <span class="w-2 h-2 rounded-full bg-indigo-950 border border-indigo-700/60 flex items-center justify-center">
+                <span class="w-1 h-1 rounded-full bg-indigo-400"></span>
+              </span>
+            </div>
+          </div>
+
           <!-- Верхний бейдж канала / Shorts -->
           <div class="relative z-10 flex items-center justify-between text-[11px] text-slate-300">
-            <span class="bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 font-bold flex items-center gap-1 text-white">
+            <span class="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 font-bold flex items-center gap-1 text-white shadow-sm">
               <i class="fa-solid fa-play text-red-500 text-[9px]"></i> Shorts
             </span>
-            <span class="bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 font-mono text-[10px] text-indigo-300">
+            <span class="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 font-mono text-[10px] text-indigo-300 font-semibold shadow-sm">
               @krshorts
             </span>
           </div>
@@ -690,7 +809,7 @@
 
         <!-- ПАНЕЛЬ УПРАВЛЕНИЯ ПЛЕЕРОМ -->
         <div class="flex items-center justify-center gap-3">
-          <button onclick="toggleCapCutPlay()" id="btnCapCutPlay" class="w-12 h-12 rounded-full bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white flex items-center justify-center text-lg shadow-lg active:scale-95 transition-transform">
+          <button onclick="toggleCapCutPlay()" id="btnCapCutPlay" class="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 via-indigo-600 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white flex items-center justify-center text-xl shadow-[0_0_25px_rgba(99,102,241,0.5)] active:scale-95 transition-all">
             <i class="fa-solid fa-play ml-0.5" id="capcutPlayIcon"></i>
           </button>
           <button onclick="resetCapCutPlay()" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs active:scale-95 border border-slate-700">
@@ -849,31 +968,72 @@
             </div>
           </div>
 
-          <!-- 5. Тумблеры эффектов: SFX, Зум, Эмодзи, Виньетка, Зерно -->
-          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="capcutSfxToggle" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
-              <span class="text-[11px] text-amber-300 font-bold">💥 Звуки SFX (Whoosh, Pop, Cash)</span>
+          <!-- 5. Тумблеры эффектов: SFX, Зум, Эмодзи, Виньетка, Зерно (iOS Switch Toggles) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+            <!-- 1. SFX Toggle -->
+            <label class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer select-none">
+              <span class="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-volume-high text-xs"></i> 💥 Звуки SFX
+              </span>
+              <div class="relative inline-flex items-center">
+                <input type="checkbox" id="capcutSfxToggle" checked class="sr-only peer">
+                <div class="w-8 h-4 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
+              </div>
             </label>
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="capcutPunchZoom" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
-              <span class="text-[11px] text-slate-300 font-semibold">Наезд камеры (Punch Zoom)</span>
+
+            <!-- 2. Punch Zoom -->
+            <label class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer select-none">
+              <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-magnifying-glass-plus text-xs text-indigo-400"></i> Наезд камеры
+              </span>
+              <div class="relative inline-flex items-center">
+                <input type="checkbox" id="capcutPunchZoom" checked class="sr-only peer">
+                <div class="w-8 h-4 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
+              </div>
             </label>
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="capcutEmojiToggle" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
-              <span class="text-[11px] text-slate-300 font-semibold">Всплывающие эмодзи 🔥</span>
+
+            <!-- 3. Emojis -->
+            <label class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer select-none">
+              <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-face-smile text-xs text-yellow-400"></i> Эмодзи 🔥
+              </span>
+              <div class="relative inline-flex items-center">
+                <input type="checkbox" id="capcutEmojiToggle" checked class="sr-only peer">
+                <div class="w-8 h-4 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
+              </div>
             </label>
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="capcutVignetteToggle" checked onchange="toggleVignette()" class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
-              <span class="text-[11px] text-slate-300 font-semibold">Киновиньетка (Vignette)</span>
+
+            <!-- 4. Vignette -->
+            <label class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer select-none">
+              <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-half-stroke text-xs text-purple-400"></i> Виньетка
+              </span>
+              <div class="relative inline-flex items-center">
+                <input type="checkbox" id="capcutVignetteToggle" checked onchange="toggleVignette()" class="sr-only peer">
+                <div class="w-8 h-4 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
+              </div>
             </label>
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="capcutGrainToggle" onchange="toggleGrain()" class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
-              <span class="text-[11px] text-slate-300 font-semibold">Пленочное зерно (Grain)</span>
+
+            <!-- 5. Grain -->
+            <label class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer select-none">
+              <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-braille text-xs text-cyan-400"></i> Пленка (Grain)
+              </span>
+              <div class="relative inline-flex items-center">
+                <input type="checkbox" id="capcutGrainToggle" onchange="toggleGrain()" class="sr-only peer">
+                <div class="w-8 h-4 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
+              </div>
             </label>
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="capcutCamShakeToggle" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
-              <span class="text-[11px] text-slate-300 font-semibold">Тряска экрана (Shake)</span>
+
+            <!-- 6. Shake -->
+            <label class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer select-none">
+              <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-bolt text-xs text-rose-400"></i> Тряска (Shake)
+              </span>
+              <div class="relative inline-flex items-center">
+                <input type="checkbox" id="capcutCamShakeToggle" checked class="sr-only peer">
+                <div class="w-8 h-4 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
+              </div>
             </label>
           </div></div>
 
@@ -1547,13 +1707,13 @@
       if (tab === 'trends') {
         trendsView.classList.remove('hidden');
         studioView.classList.add('hidden');
-        btnTrends.className = "py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20";
-        btnStudio.className = "py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white";
+        btnTrends.className = "py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/25 active:scale-[0.98]";
+        btnStudio.className = "py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-slate-400 hover:text-white active:scale-[0.98]";
       } else {
         trendsView.classList.add('hidden');
         studioView.classList.remove('hidden');
-        btnStudio.className = "py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20";
-        btnTrends.className = "py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white";
+        btnStudio.className = "py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/25 active:scale-[0.98]";
+        btnTrends.className = "py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-slate-400 hover:text-white active:scale-[0.98]";
       }
     }
 
@@ -1572,6 +1732,10 @@
       renderNiches(currentNichesList);
     }
 
+    document.addEventListener("DOMContentLoaded", function() {
+      loadPresetTrends("all");
+    });
+
     function renderNiches(niches) {
       const container = document.getElementById('nichesList');
       if (!container) return;
@@ -1587,7 +1751,7 @@
         }
 
         const topicsHtml = (niche.viral_topics || []).map((t, tIdx) => `
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+          <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800/60 hover:border-slate-700/80 space-y-2 transition-all">
             <div class="space-y-1">
               <p class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
                 <i class="fa-solid fa-play text-[9px] text-indigo-400"></i> ${t.topic}
@@ -1597,7 +1761,7 @@
               </p>
             </div>
             <div class="flex justify-end pt-1">
-              <button onclick="triggerTrendByIndex(${nIdx}, ${tIdx})" class="bg-indigo-600 active:bg-indigo-500 text-white font-extrabold text-[11px] py-1.5 px-3 rounded-lg shadow-md active:scale-95 flex items-center gap-1.5 transition-all">
+              <button onclick="triggerTrendByIndex(${nIdx}, ${tIdx})" class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-[11px] py-2 px-3.5 rounded-xl shadow-md shadow-indigo-500/20 active:scale-95 flex items-center gap-1.5 transition-all">
                 <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
                 <span>⚡ Создать сценарий в 1 клик</span>
               </button>
@@ -1606,7 +1770,7 @@
         `).join('');
 
         const card = document.createElement('div');
-        card.className = "bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl space-y-3 hover:border-amber-500/40 transition-colors";
+        card.className = "glass-panel p-4 rounded-2xl space-y-3.5 hover:border-amber-500/40 transition-all duration-300 shadow-xl relative overflow-hidden group";
         card.innerHTML = `
           <!-- Верх ниши: Заголовок + Бейджи -->
           <div class="flex items-start justify-between gap-2">
@@ -3000,7 +3164,7 @@ async function callAI(provider, key, text) {
 
     <!-- МОДАЛЬНОЕ ОКНО РУЧНОЙ ПРАВКИ СУБТИТРОВ -->
     <div id="subtitleModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
-      <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-4 space-y-3.5 shadow-2xl max-h-[85vh] flex flex-col">
+      <div class="glass-panel-glow w-full max-w-lg rounded-3xl p-5 space-y-4 shadow-2xl max-h-[85vh] flex flex-col border border-indigo-500/30">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
           <div class="flex items-center gap-2">
             <div class="w-7 h-7 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 text-xs">
