@@ -3,107 +3,234 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoScriptor — AI Video Script Cloner & Shorts Generator</title>
+  <title>AutoScriptor — Клонирование виральных видео & Генератор сценариев</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .tab-btn.active {
+      background-color: rgb(79 70 229);
+      color: white;
+      border-color: rgb(99 102 241);
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 font-sans antialiased">
-  <div class="max-w-5xl mx-auto space-y-6">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+  <div class="max-w-4xl mx-auto space-y-6">
     
-    <!-- Header -->
-    <header class="text-center space-y-2 pt-2">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-1">
-        <span id="serverBadge">🌐 GitHub Pages Режим</span>
+    <!-- Шапка -->
+    <header class="text-center space-y-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium">
+        <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+        <span id="serverBadge">AutoScriptor Studio</span>
       </div>
       <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400 tracking-tight">
         AutoScriptor
       </h1>
       <p class="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
-        Клонируй структуру успешных видео, генерируй сценарий, нейроозвучку и готовый Shorts/Reels в один клик
+        Клонирование виральных видео, нейроозвучка (ElevenLabs / Edge-TTS) и AI генерация Shorts (Fal.ai Kling / Minimax)
       </p>
     </header>
 
-    <!-- Настройки API -->
+    <!-- Настройки API Ключей (Вкладки Текст / Аудио / Видео) -->
     <div class="bg-slate-900/90 backdrop-blur p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-key text-amber-400"></i>
-          <h2 class="text-base font-bold text-slate-200">Настройки API (Сохраняются локально в браузере)</h2>
+          <h2 class="text-base font-bold text-slate-200">Подключение API нейросетей (OpenRouter, ElevenLabs, Fal.ai)</h2>
         </div>
         <button onclick="saveKeys()" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-md active:scale-95">
-          <i class="fa-regular fa-floppy-disk"></i> Сохранить
+          <i class="fa-regular fa-floppy-disk"></i> Сохранить ключи
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <!-- Табы категорий настроек -->
+      <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs font-semibold">
+        <button type="button" onclick="switchApiTab('text')" id="tabBtnText" class="tab-btn active flex-1 py-2 rounded-lg transition-colors text-center">
+          🧠 Текст & Сценарии (OpenRouter, Gemini, DeepSeek, Qwen)
+        </button>
+        <button type="button" onclick="switchApiTab('audio')" id="tabBtnAudio" class="tab-btn flex-1 py-2 rounded-lg transition-colors text-center text-slate-400 hover:text-white">
+          🎙 Нейроозвучка (ElevenLabs, OpenAI TTS, Edge-TTS)
+        </button>
+        <button type="button" onclick="switchApiTab('video')" id="tabBtnVideo" class="tab-btn flex-1 py-2 rounded-lg transition-colors text-center text-slate-400 hover:text-white">
+          🎬 AI Видео (Fal.ai Kling, Minimax, Luma)
+        </button>
+      </div>
+
+      <!-- 1. ТЕКСТОВЫЕ КЛЮЧИ -->
+      <div id="tabContentText" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- OpenRouter -->
+        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-indigo-500/30">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-indigo-300">OpenRouter (Единый баланс)</label>
+            <span class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono">
+              openrouter.ai
+            </span>
+          </div>
+          <input type="password" id="keyOpenRouter" placeholder="sk-or-v1-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+          <div class="space-y-1">
+            <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
+            <select id="modelOpenRouter" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
+              <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet (Лучшая для сторителлинга и сценариев)</option>
+              <option value="openai/gpt-4o">GPT-4o (Флагман OpenAI)</option>
+              <option value="openai/gpt-4o-mini">GPT-4o Mini (Быстрый & экономный)</option>
+              <option value="deepseek/deepseek-r1">DeepSeek R1 (Глубокие рассуждения & виральные хуки)</option>
+              <option value="deepseek/deepseek-chat">DeepSeek V3 (Быстрый)</option>
+              <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B (Очень дешево)</option>
+              <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
+            </select>
+          </div>
+          <p class="text-[10px] text-slate-500">Работает прямо в браузере без ограничений CORS.</p>
+        </div>
+
         <!-- Google Gemini -->
-        <div class="space-y-2 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
           <div class="flex items-center justify-between">
             <label class="block text-xs font-bold text-cyan-300">Google Gemini</label>
             <span class="text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full">
-              Бесплатно в AI Studio
+              Бесплатно
             </span>
           </div>
           <input type="password" id="keyGemini" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-cyan-500 outline-none font-mono">
-          
-          <div class="space-y-1.5 pt-1">
+          <div class="space-y-1">
             <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
-            <select id="modelGemini" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:ring-2 focus:ring-cyan-500 outline-none">
-              <option value="gemini-2.5-flash">gemini-2.5-flash (Рекомендуется — быстрый & бесплатный)</option>
-              <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-              <option value="gemini-3.8-flash">gemini-3.8-flash (Новейший)</option>
-              <option value="gemini-3.7-flash">gemini-3.7-flash</option>
+            <select id="modelGemini" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
+              <option value="gemini-2.5-flash">gemini-2.5-flash (Быстрый & бесплатный)</option>
               <option value="gemini-2.5-pro">gemini-2.5-pro (Максимальное качество)</option>
             </select>
           </div>
-          <p class="text-[10px] text-slate-500 pt-1">
-            Работает прямо из браузера на GitHub Pages без ограничений CORS.
-          </p>
+          <p class="text-[10px] text-slate-500">Работает на GitHub Pages без CORS.</p>
         </div>
 
-        <!-- DeepSeek -->
-        <div class="space-y-2 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+        <!-- DeepSeek / AI STAR -->
+        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
           <div class="flex items-center justify-between">
             <label class="block text-xs font-bold text-indigo-300">DeepSeek / AI STAR</label>
             <span id="starimgBadge" class="hidden text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">
-              AI STAR Ключ
+              AI STAR
             </span>
           </div>
-          <input type="password" id="keyDeepseek" oninput="handleDeepseekKeyChange()" placeholder="sk-... или sk-star-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
-          
-          <div class="space-y-1.5 pt-1">
-            <label class="block text-[11px] font-medium text-slate-400">Base URL (Сервер API):</label>
-            <input type="text" id="baseDeepseek" placeholder="https://api.deepseek.com/v1" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
-          </div>
-
-          <div class="space-y-1.5">
-            <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
-            <select id="modelDeepseek" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="deepseek-v4-pro">deepseek-v4-pro (AI STAR / Агрегаторы)</option>
-              <option value="deepseek-chat">deepseek-chat (Официальный DeepSeek V3)</option>
-              <option value="deepseek-v4.1-flash">deepseek-v4.1-flash (AI STAR Flash)</option>
-              <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek R1)</option>
-            </select>
+          <input type="password" id="keyDeepseek" oninput="handleDeepseekKeyChange()" placeholder="sk-... или sk-star-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-0.5">Base URL:</label>
+              <input type="text" id="baseDeepseek" placeholder="https://api.deepseek.com/v1" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-300 outline-none font-mono">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-0.5">Модель:</label>
+              <select id="modelDeepseek" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
+                <option value="deepseek-v4-pro">deepseek-v4-pro</option>
+                <option value="deepseek-chat">deepseek-chat</option>
+                <option value="deepseek-v4.1-flash">deepseek-v4.1-flash</option>
+                <option value="deepseek-reasoner">deepseek-reasoner (R1)</option>
+              </select>
+            </div>
           </div>
         </div>
 
         <!-- Qwen -->
-        <div class="space-y-2 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
           <div class="flex items-center justify-between">
             <label class="block text-xs font-bold text-emerald-300">Qwen (DashScope)</label>
-            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">Alibaba Cloud</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">Alibaba</span>
           </div>
-          <input type="password" id="keyQwen" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-emerald-500 outline-none font-mono">
-          
-          <div class="space-y-1.5 pt-1">
+          <input type="password" id="keyQwen" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
+          <div>
             <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
-            <select id="modelQwen" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+            <select id="modelQwen" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
               <option value="qwen-plus">qwen-plus</option>
               <option value="qwen-max">qwen-max</option>
             </select>
           </div>
         </div>
       </div>
+
+      <!-- 2. АУДИО КЛЮЧИ (TTS) -->
+      <div id="tabContentAudio" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- ElevenLabs -->
+        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-amber-500/30">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-amber-300">ElevenLabs (Премиум нейроозвучка)</label>
+            <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono">
+              elevenlabs.io
+            </span>
+          </div>
+          <input type="password" id="keyElevenLabs" placeholder="xi-api-key..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-0.5">Голос:</label>
+              <select id="voiceElevenLabs" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
+                <option value="pNInz6obpgDQGcFmaJgB">Adam (Мужской, глубокий сторителлинг)</option>
+                <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Женский, мягкий нарратив)</option>
+                <option value="ErXwobaYiN019PkySvjV">Antoni (Мужской, энергичный Shorts)</option>
+                <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Женский, яркий)</option>
+                <option value="JBFqnCBsd6RMkjVDRZzb">George (Солидный)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-0.5">Свой Voice ID (опционально):</label>
+              <input type="text" id="customVoiceElevenLabs" placeholder="ID клонированного голоса" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-300 outline-none font-mono">
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500">Генерирует кристально чистое MP3 аудио с естественными русскими интонациями.</p>
+        </div>
+
+        <!-- OpenAI TTS -->
+        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-slate-300">OpenAI Audio TTS</label>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">platform.openai.com</span>
+          </div>
+          <input type="password" id="keyOpenAI" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-0.5">Голос OpenAI:</label>
+              <select id="voiceOpenAI" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
+                <option value="onyx">Onyx (Глубокий мужской)</option>
+                <option value="nova">Nova (Энергичный женский)</option>
+                <option value="alloy">Alloy (Универсальный)</option>
+                <option value="echo">Echo (Мягкий)</option>
+                <option value="fable">Fable (Британский нарратив)</option>
+                <option value="shimmer">Shimmer (Яркий женский)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-0.5">Модель:</label>
+              <select id="modelOpenAITTS" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
+                <option value="tts-1">tts-1 (Быстро)</option>
+                <option value="tts-1-hd">tts-1-hd (Студийный HD)</option>
+              </select>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500">Официальный синтез речи OpenAI.</p>
+        </div>
+      </div>
+
+      <!-- 3. ВИДЕО КЛЮЧИ (VIDEO AI) -->
+      <div id="tabContentVideo" class="hidden space-y-3">
+        <!-- Fal.ai -->
+        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-purple-500/30">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-purple-300">Fal.ai (Kling AI 1.5, Minimax Hailuo, Luma)</label>
+            <span class="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full font-mono">
+              fal.ai
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">
+            Fal.ai — агрегатор топовых мировых видео-нейросетей по типу OpenRouter. Вы платите за генерации по балансу на fal.ai.
+          </p>
+          <input type="password" id="keyFal" placeholder="Key ... или fal_..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Модель по умолчанию:</label>
+            <select id="modelFal" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
+              <option value="fal-ai/kling-video/v1/standard/text-to-video">Kling AI 1.5 (Самое популярное вирусное видео для Shorts 9:16)</option>
+              <option value="fal-ai/minimax-video">Minimax Hailuo 01 (Кинематографичная физика и лица)</option>
+              <option value="fal-ai/luma-dream-machine">Luma Dream Machine (3D Динамика)</option>
+              <option value="fal-ai/cogvideox-5b">CogVideoX 5B (Быстро)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Основная форма -->
@@ -120,8 +247,9 @@
 
       <div class="flex flex-col md:flex-row gap-4">
         <div class="w-full md:w-1/3">
-          <label class="block text-sm font-bold text-slate-300 mb-2">Использовать нейросеть</label>
-          <select id="aiProvider" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-3.5 px-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer text-sm">
+          <label class="block text-sm font-bold text-slate-300 mb-2">Нейросеть для анализа & сценария</label>
+          <select id="aiProvider" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-3.5 px-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer text-sm font-bold">
+            <option value="openrouter">OpenRouter (Все топ модели)</option>
             <option value="gemini">Google Gemini</option>
             <option value="deepseek">DeepSeek / AI STAR</option>
             <option value="qwen">Qwen (DashScope)</option>
@@ -173,7 +301,7 @@
         <div id="resScript" class="whitespace-pre-wrap text-slate-200 leading-relaxed text-sm md:text-base font-normal bg-slate-950/60 p-4 rounded-xl border border-slate-800"></div>
       </div>
 
-      <!-- БЛОК ГЕНЕРАЦИИ ГОЛОСА И ВИДЕО -->
+      <!-- БЛОК ГЕНЕРАЦИИ ГОЛОСА И ВИДЕО (MULTI-PROVIDER) -->
       <div class="bg-gradient-to-b from-indigo-950/40 to-slate-900/90 p-6 rounded-2xl border border-indigo-500/30 shadow-2xl space-y-6">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
           <div class="flex items-center gap-2">
@@ -182,66 +310,93 @@
             </div>
             <div>
               <h3 class="text-lg font-black text-white">Нейроозвучка & Создание Shorts (9:16)</h3>
-              <p class="text-xs text-slate-400">Озвучь сценарий и собери готовое вертикальное видео с субтитрами</p>
+              <p class="text-xs text-slate-400">Озвучь сценарий (ElevenLabs / Edge-TTS) и создай видео (Fal.ai Kling / FFmpeg)</p>
             </div>
           </div>
-          <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            Бесплатно & Быстро
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            Multi-AI Engine
           </span>
         </div>
 
         <!-- Параметры генерации -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1.5">Голос диктора</label>
-            <select id="ttsVoice" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="ru-RU-DmitryNeural">Дмитрий (Мужской, энергичный)</option>
-              <option value="ru-RU-SvetlanaNeural">Светлана (Женский, мягкий)</option>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">Сервис озвучки:</label>
+            <select id="ttsEngine" onchange="updateTtsEngineUI()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="elevenlabs">ElevenLabs (Премиум HD)</option>
+              <option value="openai">OpenAI Audio TTS</option>
+              <option value="edge">Microsoft Edge-TTS (Бесплатно)</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1.5">Темп речи</label>
-            <select id="ttsRate" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="+10%">+10% (Динамичный для Shorts)</option>
-              <option value="+0%">0% (Обычный темп)</option>
-              <option value="+20%">+20% (Быстрый драйв)</option>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">Диктор / Голос:</label>
+            <select id="ttsVoiceSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <!-- Заполняется динамически -->
             </select>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1.5">Стиль фона видео</label>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">Нейросеть видео:</label>
+            <select id="videoModelSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="fal-ai/kling-video/v1/standard/text-to-video">Fal.ai: Kling AI 1.5 (Shorts 9:16)</option>
+              <option value="fal-ai/minimax-video">Fal.ai: Minimax Hailuo (Кинематограф)</option>
+              <option value="fal-ai/luma-dream-machine">Fal.ai: Luma Dream Machine</option>
+              <option value="local-ffmpeg">Локальный FFmpeg (с субтитрами)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">Стиль фона (для FFmpeg):</label>
             <select id="videoStyle" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="cyber">Cyber Dark (Неоновый киберпанк)</option>
-              <option value="neon">Deep Indigo (Глубокий индиго)</option>
-              <option value="dark">Pure Black (Минималистичный)</option>
-              <option value="gaming">Gaming Dark (Игровой стиль)</option>
+              <option value="cyber">Cyber Dark (Неоновый)</option>
+              <option value="neon">Deep Indigo</option>
+              <option value="dark">Pure Black</option>
+              <option value="gaming">Gaming Dark</option>
             </select>
           </div>
         </div>
 
         <!-- Кнопки действий -->
-        <div class="flex flex-col sm:flex-row gap-3 pt-2">
-          <button onclick="generateVoice()" id="btnVoice" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-indigo-500/30 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-sm">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+          <button onclick="generateSpeech()" id="btnVoice" class="bg-slate-800 hover:bg-slate-700 border border-indigo-500/30 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-sm">
             <i class="fa-solid fa-microphone-lines text-indigo-400"></i>
             <span>🎙 Сгенерировать голос</span>
           </button>
-          <button onclick="renderVideo()" id="btnVideo" class="flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-lg shadow-indigo-600/25 active:scale-95 flex items-center justify-center gap-2 text-sm">
+          
+          <button onclick="generateVideo()" id="btnVideo" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-lg shadow-indigo-600/25 active:scale-95 flex items-center justify-center gap-2 text-sm">
             <i class="fa-solid fa-film"></i>
             <span>🎬 Собрать видео (Shorts 9:16)</span>
           </button>
+
+          <button onclick="copyAiVideoPrompt()" class="bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-300 font-bold py-3 px-4 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-xs">
+            <i class="fa-regular fa-copy"></i>
+            <span>Скопировать 9:16 промпт</span>
+          </button>
         </div>
 
-        <!-- Аудиоплеер (скрыт по умолчанию) -->
+        <!-- Уведомление о прогрессе генерации видео -->
+        <div id="videoProgressNotice" class="hidden text-center p-3 bg-slate-950/90 rounded-xl border border-purple-500/30">
+          <div class="flex items-center justify-center gap-2 text-sm text-purple-300">
+            <i class="fa-solid fa-spinner animate-spin"></i>
+            <span id="videoProgressText">Генерация видео...</span>
+          </div>
+        </div>
+
+        <!-- Аудиоплеер -->
         <div id="audioPlayerSection" class="hidden bg-slate-950/80 p-4 rounded-xl border border-slate-800 space-y-2">
           <div class="flex items-center justify-between text-xs text-slate-300">
             <span class="font-bold flex items-center gap-1.5 text-emerald-400">
               <i class="fa-solid fa-circle-check"></i> Аудиодорожка готова
             </span>
-            <span id="audioDurationText" class="font-mono text-slate-400"></span>
+            <div class="flex items-center gap-3">
+              <span id="audioDurationText" class="font-mono text-slate-400"></span>
+              <a id="audioDownloadBtn" href="#" download="voice.mp3" class="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-semibold">
+                <i class="fa-solid fa-download"></i> Скачать MP3
+              </a>
+            </div>
           </div>
           <audio id="audioPlayer" controls class="w-full h-10 outline-none rounded-lg"></audio>
         </div>
 
-        <!-- Видеоплеер (скрыт по умолчанию) -->
+        <!-- Видеоплеер -->
         <div id="videoPlayerSection" class="hidden bg-slate-950/80 p-6 rounded-xl border border-slate-800 space-y-4 text-center">
           <div class="flex items-center justify-between text-xs text-slate-300 pb-2 border-b border-slate-800">
             <span class="font-bold flex items-center gap-1.5 text-amber-400">
@@ -297,20 +452,41 @@
   <script>
     const isLocalServer = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     let currentAudioId = null;
+    let currentAiData = null;
+
+    function switchApiTab(tab) {
+      ['text', 'audio', 'video'].forEach(t => {
+        const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        const content = document.getElementById('tabContent' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (t === tab) {
+          btn.classList.add('active', 'text-white');
+          btn.classList.remove('text-slate-400');
+          content.classList.remove('hidden');
+        } else {
+          btn.classList.remove('active', 'text-white');
+          btn.classList.add('text-slate-400');
+          content.classList.add('hidden');
+        }
+      });
+    }
 
     window.onload = () => {
       const badge = document.getElementById('serverBadge');
       if (isLocalServer) {
-        badge.innerHTML = '🟢 Локальный сервер (Озвучка & Видео активны)';
+        badge.innerHTML = '🟢 Локальный сервер (FFmpeg & Edge-TTS активны)';
         badge.className = 'text-emerald-400 font-semibold';
       }
 
       // Загрузка сохранённых настроек
       const fields = [
+        'keyOpenRouter', 'modelOpenRouter',
         'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
         'keyGemini', 'modelGemini',
         'keyQwen', 'modelQwen',
-        'aiProvider', 'ttsVoice', 'ttsRate', 'videoStyle'
+        'keyElevenLabs', 'voiceElevenLabs', 'customVoiceElevenLabs',
+        'keyOpenAI', 'voiceOpenAI', 'modelOpenAITTS',
+        'keyFal', 'modelFal',
+        'aiProvider', 'ttsEngine', 'videoModelSelect', 'videoStyle'
       ];
       
       fields.forEach(id => {
@@ -319,7 +495,7 @@
         if (val && el) el.value = val;
       });
 
-      // Автоматическая миграция моделей Gemini на 2.5-flash
+      // Автоматическая миграция Gemini на 2.5-flash
       const storedGemini = localStorage.getItem('modelGemini');
       if (!storedGemini || storedGemini.startsWith('gemini-1.5')) {
         const geminiEl = document.getElementById('modelGemini');
@@ -330,6 +506,7 @@
       }
 
       handleDeepseekKeyChange(false);
+      updateTtsEngineUI();
     };
 
     function handleDeepseekKeyChange(showBadge = true) {
@@ -356,16 +533,92 @@
 
     function saveKeys() {
       const fields = [
+        'keyOpenRouter', 'modelOpenRouter',
         'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
         'keyGemini', 'modelGemini',
         'keyQwen', 'modelQwen',
-        'aiProvider', 'ttsVoice', 'ttsRate', 'videoStyle'
+        'keyElevenLabs', 'voiceElevenLabs', 'customVoiceElevenLabs',
+        'keyOpenAI', 'voiceOpenAI', 'modelOpenAITTS',
+        'keyFal', 'modelFal',
+        'aiProvider', 'ttsEngine', 'videoModelSelect', 'videoStyle'
       ];
       fields.forEach(id => {
         const el = document.getElementById(id);
         if (el) localStorage.setItem(id, el.value.trim());
       });
-      alert("✅ Настройки успешно сохранены");
+      alert("✅ Настройки и API-ключи успешно сохранены!");
+    }
+
+    function updateTtsEngineUI() {
+      const engine = document.getElementById('ttsEngine').value;
+      const select = document.getElementById('ttsVoiceSelect');
+      select.innerHTML = '';
+
+      if (engine === 'elevenlabs') {
+        select.innerHTML = `
+          <option value="pNInz6obpgDQGcFmaJgB">Adam (Мужской, глубокий сторителлинг)</option>
+          <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Женский, мягкий нарратив)</option>
+          <option value="ErXwobaYiN019PkySvjV">Antoni (Мужской, энергичный)</option>
+          <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Женский, эмоциональный)</option>
+          <option value="JBFqnCBsd6RMkjVDRZzb">George (Солидный)</option>
+          <option value="custom">Свой Voice ID (из настроек)</option>
+        `;
+      } else if (engine === 'openai') {
+        select.innerHTML = `
+          <option value="onyx">Onyx (Глубокий мужской)</option>
+          <option value="nova">Nova (Энергичный женский)</option>
+          <option value="alloy">Alloy (Универсальный)</option>
+          <option value="echo">Echo (Мягкий)</option>
+          <option value="fable">Fable (Британский нарратив)</option>
+          <option value="shimmer">Shimmer (Яркий женский)</option>
+        `;
+      } else {
+        select.innerHTML = `
+          <option value="ru-RU-DmitryNeural">Дмитрий (Мужской, энергичный Edge-TTS)</option>
+          <option value="ru-RU-SvetlanaNeural">Светлана (Женский, мягкий Edge-TTS)</option>
+        `;
+      }
+    }
+
+    async function executeRequest(url, method = 'POST', headers = {}, body = null, asBinary = false) {
+      if (isLocalServer) {
+        const res = await fetch('/api/proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: url, method, headers, body })
+        });
+        if (asBinary) {
+          const blob = await res.blob();
+          const dataUrl = URL.createObjectURL(blob);
+          return { status: res.status, ok: res.ok, dataUrl, isBinary: true };
+        }
+        const txt = await res.text();
+        return {
+          status: res.status,
+          ok: res.ok,
+          json: () => JSON.parse(txt),
+          text: () => txt,
+          isBinary: false
+        };
+      } else {
+        const options = { method, headers };
+        if (body && method !== 'GET') {
+          options.body = typeof body === 'string' ? body : JSON.stringify(body);
+        }
+        const res = await fetch(url, options);
+        if (asBinary) {
+          const blob = await res.blob();
+          const dataUrl = URL.createObjectURL(blob);
+          return { status: res.status, ok: res.ok, dataUrl, isBinary: true };
+        }
+        return {
+          status: res.status,
+          ok: res.ok,
+          json: () => res.json(),
+          text: () => res.text(),
+          isBinary: false
+        };
+      }
     }
 
     async function fetchSubtitles(url) {
@@ -379,16 +632,8 @@
       if (!res.ok) {
         res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt`);
       }
-
-      if (!res.ok) {
-        throw new Error("❌ Не удалось извлечь субтитры. Автор отключил субтитры или видео закрыто.");
-      }
-
-      const text = await res.text();
-      if (!text || text.trim().length === 0) {
-        throw new Error("Субтитры пусты.");
-      }
-      return text;
+      if (!res.ok) throw new Error("❌ Не удалось извлечь субтитры. Автор отключил субтитры или видео закрыто.");
+      return await res.text();
     }
 
     async function generateScript() {
@@ -400,12 +645,13 @@
       const btn = document.getElementById('submitBtn');
 
       const keys = {
-        deepseek: document.getElementById('keyDeepseek').value.trim(),
+        openrouter: document.getElementById('keyOpenRouter').value.trim(),
         gemini: document.getElementById('keyGemini').value.trim(),
+        deepseek: document.getElementById('keyDeepseek').value.trim(),
         qwen: document.getElementById('keyQwen').value.trim()
       };
 
-      if (!keys[provider]) return alert(`❌ Укажите ключ для ${provider.toUpperCase()}`);
+      if (!keys[provider]) return alert(`❌ Укажите API-ключ для ${provider.toUpperCase()}`);
       if (!url) return alert("❌ Вставьте ссылку на YouTube видео или Shorts");
 
       btn.disabled = true;
@@ -419,6 +665,7 @@
 
         loaderText.innerText = `2/2: Переписываем сценарий через ${provider.toUpperCase()}...`;
         const aiData = await callAI(provider, keys[provider], transcript);
+        currentAiData = aiData;
 
         document.getElementById('resTitle').innerText = Array.isArray(aiData.title) ? aiData.title.join(' | ') : (aiData.title || '');
         document.getElementById('resHook').innerText = aiData.hook || '';
@@ -431,8 +678,7 @@
         resultContainer.scrollIntoView({ behavior: 'smooth' });
 
       } catch (err) {
-        let msg = err.message || "Неизвестная ошибка";
-        alert("⚠️ " + msg);
+        alert("⚠️ " + (err.message || "Ошибка"));
       } finally {
         loader.classList.add('hidden');
         btn.disabled = false;
@@ -446,20 +692,34 @@
 {
   "title": "3 цепляющих варианта заголовка",
   "hook": "Мощный хук для первых 3 секунд",
-  "script": "Полный текст нового сценария (динамичные короткие абзацы)",
+  "script": "Полный текст нового сценария (динамичные короткие абзацы для озвучки)",
   "visuals": "Идеи для B-roll кадров и визуального ряда",
+  "video_prompt": "Cinematic vertical 9:16 video prompt in English for Kling/Runway/Fal.ai",
   "seo_description": "SEO оптимизированное описание",
   "hashtags": "#тег1 #тег2 #тег3"
 }`;
 
       let endpoint, headers, body;
 
-      if (provider === 'gemini') {
+      if (provider === 'openrouter') {
+        const model = document.getElementById('modelOpenRouter').value || 'anthropic/claude-3.5-sonnet';
+        endpoint = "https://openrouter.ai/api/v1/chat/completions";
+        headers = {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${key}`,
+          "HTTP-Referer": "https://autoscriptor.app",
+          "X-Title": "AutoScriptor"
+        };
+        body = {
+          model: model,
+          messages: [
+            { role: "system", content: prompt },
+            { role: "user", content: "Исходник видео:\n" + text }
+          ],
+          response_format: { type: "json_object" }
+        };
+      } else if (provider === 'gemini') {
         let geminiModel = document.getElementById('modelGemini').value || 'gemini-2.5-flash';
-        if (geminiModel.startsWith('gemini-1.5')) {
-          geminiModel = 'gemini-2.5-flash';
-          document.getElementById('modelGemini').value = 'gemini-2.5-flash';
-        }
         endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${key}`;
         headers = { "Content-Type": "application/json" };
         body = {
@@ -470,7 +730,6 @@
         let baseUrl = document.getElementById('baseDeepseek').value.trim() || 'https://api.deepseek.com/v1';
         baseUrl = baseUrl.replace(/\/+$/, '');
         endpoint = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
-
         const model = document.getElementById('modelDeepseek').value || 'deepseek-v4-pro';
         headers = {
           "Content-Type": "application/json",
@@ -480,11 +739,12 @@
           model: model,
           messages: [
             { role: "system", content: prompt },
-            { role: "user", content: "Исходник видео:\n" + text }
+            { role: "user", content: "Исходник:\n" + text }
           ],
           response_format: { type: "json_object" }
         };
       } else {
+        // Qwen
         const qwenModel = document.getElementById('modelQwen').value || 'qwen-plus';
         endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
         headers = {
@@ -495,180 +755,278 @@
           model: qwenModel,
           messages: [
             { role: "system", content: prompt },
-            { role: "user", content: "Исходник видео:\n" + text }
+            { role: "user", content: "Исходник:\n" + text }
           ],
           response_format: { type: "json_object" }
         };
       }
 
-      let rawData;
-      if (isLocalServer) {
-        try {
-          const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ endpoint, headers, body })
-          });
-          rawData = await res.json();
-          if (!res.ok) throw new Error(rawData.error?.message || "Ошибка API сервера");
-        } catch (localErr) {
-          throw new Error("Ошибка локального прокси: " + localErr.message);
-        }
-      } else {
-        try {
-          let res = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify(body) });
-          rawData = await res.json();
-          
-          if (!res.ok && provider === 'gemini' && (rawData.error?.code === 404 || rawData.error?.message?.includes('not found'))) {
-            try {
-              const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
-              if (listRes.ok) {
-                const listData = await listRes.json();
-                const validModels = (listData.models || [])
-                  .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
-                  .map(m => m.name.replace('models/', ''));
-                
-                const fallback = validModels.find(m => m.includes('2.5-flash')) || validModels.find(m => m.includes('flash')) || validModels[0];
-                if (fallback) {
-                  document.getElementById('modelGemini').value = fallback;
-                  localStorage.setItem('modelGemini', fallback);
-                  endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${fallback}:generateContent?key=${key}`;
-                  res = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify(body) });
-                  rawData = await res.json();
-                }
-              }
-            } catch (healErr) {
-              console.warn("Auto-heal failed:", healErr);
-            }
-          }
+      const response = await executeRequest(endpoint, 'POST', headers, body);
+      const rawData = await response.json();
+      if (!response.ok) throw new Error(rawData.error?.message || "Ошибка API нейросети");
 
-          if (!res.ok) throw new Error(rawData.error?.message || "Ошибка API");
-        } catch (fetchErr) {
-          const urlOrigin = new URL(endpoint).origin;
-          if (fetchErr.message && (fetchErr.message.includes('fetch') || fetchErr.message.includes('CORS') || fetchErr.message.includes('Failed to fetch'))) {
-            throw new Error(`Браузер заблокировал прямой запрос к ${urlOrigin} (CORS).\n\n💡 Решение:\n1) Если используете AI STAR (${urlOrigin}) — скачайте репозиторий и запустите run.bat (python server.py), там встроен обход CORS.\n2) Либо используйте бесплатный ключ Google Gemini (он работает прямо в браузере без ограничений).`);
-          }
-          throw fetchErr;
-        }
-      }
+      let contentStr = provider === 'gemini'
+        ? rawData.candidates?.[0]?.content?.parts?.[0]?.text
+        : rawData.choices?.[0]?.message?.content;
 
-      let contentStr = '';
-      if (provider === 'gemini') {
-        contentStr = rawData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      } else {
-        contentStr = rawData.choices?.[0]?.message?.content || '';
-      }
-
-      if (!contentStr) throw new Error("Нейросеть вернула пустой ответ");
+      if (!contentStr) throw new Error("Пустой ответ от нейросети");
 
       let cleanStr = contentStr.trim();
-      const jsonMatch = cleanStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) cleanStr = jsonMatch[1].trim();
+      const match = cleanStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (match) cleanStr = match[1].trim();
 
-      try {
-        return JSON.parse(cleanStr);
-      } catch (parseErr) {
-        console.error("Parse error, raw response:", cleanStr);
-        throw new Error("Не удалось распарсить JSON ответ от нейросети.");
-      }
+      return JSON.parse(cleanStr);
     }
 
-    // Генерация нейроозвучки
-    async function generateVoice() {
+    // Генерация озвучки (ElevenLabs / OpenAI / Edge-TTS)
+    async function generateSpeech() {
       const scriptText = document.getElementById('resScript').innerText.trim();
       if (!scriptText) return alert("❌ Сначала сгенерируйте сценарий!");
 
-      const voice = document.getElementById('ttsVoice').value;
-      const rate = document.getElementById('ttsRate').value;
+      const engine = document.getElementById('ttsEngine').value;
       const btn = document.getElementById('btnVoice');
       const oldHtml = btn.innerHTML;
 
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Озвучиваем...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Генерация речи...</span>`;
 
       try {
-        if (!isLocalServer) {
-          // Если открыто онлайн на GitHub Pages — используем встроенный Web Speech API браузера
-          if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(scriptText);
-            utterance.lang = 'ru-RU';
-            utterance.rate = rate === '+20%' ? 1.2 : (rate === '+10%' ? 1.1 : 1.0);
-            window.speechSynthesis.speak(utterance);
-            alert("🔊 Озвучивание запущено в браузере!\n\n💡 Чтобы генерировать студийную нейроозвучку в MP3 и собирать видео, запустите AutoScriptor локально через run.bat.");
-            return;
-          } else {
-            throw new Error("Для генерации MP3 аудио запустите AutoScriptor через run.bat!");
+        if (engine === 'elevenlabs') {
+          const key = document.getElementById('keyElevenLabs').value.trim();
+          if (!key) throw new Error("Введите API-ключ ElevenLabs во вкладке 'Озвучка'!");
+
+          let voiceId = document.getElementById('ttsVoiceSelect').value;
+          const customId = document.getElementById('customVoiceElevenLabs').value.trim();
+          if (voiceId === 'custom' || customId) voiceId = customId || voiceId;
+
+          const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+          const headers = {
+            "xi-api-key": key,
+            "Content-Type": "application/json",
+            "Accept": "audio/mpeg"
+          };
+          const body = {
+            text: scriptText,
+            model_id: "eleven_multilingual_v2",
+            voice_settings: { stability: 0.5, similarity_boost: 0.8 }
+          };
+
+          const res = await executeRequest(endpoint, 'POST', headers, body, true);
+          if (!res.ok) throw new Error("Ошибка генерации ElevenLabs");
+
+          const player = document.getElementById('audioPlayer');
+          const dlBtn = document.getElementById('audioDownloadBtn');
+          player.src = res.dataUrl;
+          dlBtn.href = res.dataUrl;
+          document.getElementById('audioDurationText').innerText = "ElevenLabs Ultra-HD";
+          document.getElementById('audioPlayerSection').classList.remove('hidden');
+          player.play();
+
+        } else if (engine === 'openai') {
+          const key = document.getElementById('keyOpenAI').value.trim();
+          if (!key) throw new Error("Введите API-ключ OpenAI во вкладке 'Озвучка'!");
+
+          const voice = document.getElementById('ttsVoiceSelect').value || 'onyx';
+          const model = document.getElementById('modelOpenAITTS').value || 'tts-1';
+
+          const endpoint = "https://api.openai.com/v1/audio/speech";
+          const headers = {
+            "Authorization": `Bearer ${key}`,
+            "Content-Type": "application/json"
+          };
+          const body = { model, input: scriptText, voice };
+
+          const res = await executeRequest(endpoint, 'POST', headers, body, true);
+          if (!res.ok) throw new Error("Ошибка генерации OpenAI TTS");
+
+          const player = document.getElementById('audioPlayer');
+          const dlBtn = document.getElementById('audioDownloadBtn');
+          player.src = res.dataUrl;
+          dlBtn.href = res.dataUrl;
+          document.getElementById('audioDurationText').innerText = `OpenAI ${voice.toUpperCase()}`;
+          document.getElementById('audioPlayerSection').classList.remove('hidden');
+          player.play();
+
+        } else {
+          // Edge-TTS через локальный сервер
+          if (!isLocalServer) {
+            // Онлайн fallback на Web Speech API
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+              const u = new SpeechSynthesisUtterance(scriptText);
+              u.lang = 'ru-RU';
+              window.speechSynthesis.speak(u);
+              alert("🔊 Воспроизведение запущено в браузере!\n\n💡 Для генерации MP3 запустите AutoScriptor через run.bat.");
+              return;
+            } else {
+              throw new Error("Запустите AutoScriptor через run.bat для Edge-TTS или используйте ElevenLabs!");
+            }
           }
+
+          const voice = document.getElementById('ttsVoiceSelect').value || 'ru-RU-DmitryNeural';
+          const res = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: scriptText, voice, rate: '+10%' })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data.error?.message || "Ошибка Edge-TTS");
+
+          currentAudioId = data.audio_id;
+          const player = document.getElementById('audioPlayer');
+          const dlBtn = document.getElementById('audioDownloadBtn');
+          player.src = data.audio_url;
+          dlBtn.href = data.audio_url;
+          document.getElementById('audioDurationText').innerText = `Длительность: ~${data.duration} сек`;
+          document.getElementById('audioPlayerSection').classList.remove('hidden');
+          player.play();
         }
 
-        const res = await fetch('/api/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: scriptText, voice, rate })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.error?.message || "Ошибка генерации аудио");
-
-        currentAudioId = data.audio_id;
-        const player = document.getElementById('audioPlayer');
-        player.src = data.audio_url;
-        document.getElementById('audioDurationText').innerText = `Длительность: ~${data.duration} сек`;
-        document.getElementById('audioPlayerSection').classList.remove('hidden');
-        player.play();
-
       } catch (err) {
-        alert("⚠️ " + (err.message || "Ошибка генерации озвучки"));
+        alert("⚠️ " + (err.message || "Ошибка"));
       } finally {
         btn.disabled = false;
         btn.innerHTML = oldHtml;
       }
     }
 
-    // Сборка видеоролика 9:16
-    async function renderVideo() {
-      if (!isLocalServer) {
-        return alert("🎬 Сборка видеоролика и наложение субтитров требуют FFmpeg на вашем компьютере!\n\nПожалуйста, запустите AutoScriptor через run.bat (на http://localhost:8000), и видео соберется за секунды.");
+    // Генерация видео (Fal.ai Kling/Minimax или FFmpeg)
+    async function generateVideo() {
+      const videoModel = document.getElementById('videoModelSelect').value;
+
+      if (videoModel === 'local-ffmpeg') {
+        if (!isLocalServer) {
+          return alert("🎬 Локальный монтаж FFmpeg требует запуска через run.bat!\nЛибо выберите Fal.ai (Kling AI) для генерации прямо в облаке.");
+        }
+        if (!currentAudioId) {
+          await generateSpeech();
+          if (!currentAudioId) return;
+        }
+
+        const style = document.getElementById('videoStyle').value;
+        const btn = document.getElementById('btnVideo');
+        const oldHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Рендеринг FFmpeg...</span>`;
+
+        try {
+          const res = await fetch('/api/render-video', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audio_id: currentAudioId, style })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data.error?.message || "Ошибка рендеринга");
+
+          const videoPlayer = document.getElementById('videoPlayer');
+          const dlBtn = document.getElementById('videoDownloadBtn');
+          videoPlayer.src = data.video_url;
+          dlBtn.href = data.video_url;
+          dlBtn.download = data.filename;
+
+          document.getElementById('videoPlayerSection').classList.remove('hidden');
+          document.getElementById('videoPlayerSection').scrollIntoView({ behavior: 'smooth' });
+          videoPlayer.play();
+        } catch (err) {
+          alert("⚠️ " + err.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = oldHtml;
+        }
+        return;
       }
 
-      if (!currentAudioId) {
-        // Если аудио еще не сгенерировано, сначала сгенерируем его
-        await generateVoice();
-        if (!currentAudioId) return;
-      }
+      // Генерация видео через Fal.ai
+      const key = document.getElementById('keyFal').value.trim();
+      if (!key) return alert("❌ Укажите API ключ Fal.ai во вкладке 'AI Видео'!");
 
-      const style = document.getElementById('videoStyle').value;
       const btn = document.getElementById('btnVideo');
+      const progressBox = document.getElementById('videoProgressNotice');
+      const progressText = document.getElementById('videoProgressText');
       const oldHtml = btn.innerHTML;
 
+      let videoPrompt = "Vertical 9:16 cinematic video, realistic 8K, highly detailed, dramatic lighting, sharp focus";
+      if (currentAiData) {
+        if (currentAiData.video_prompt) {
+          videoPrompt = currentAiData.video_prompt;
+        } else {
+          videoPrompt = `Vertical 9:16 cinematic video. ${currentAiData.hook || ''}. ${currentAiData.visuals || ''}, ultra realistic 8k, smooth camera motion`;
+        }
+      }
+
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Монтируем видео (FFmpeg)...</span>`;
+      progressBox.classList.remove('hidden');
+      progressText.innerText = "1/3: Отправка задачи в Fal.ai...";
 
       try {
-        const res = await fetch('/api/render-video', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ audio_id: currentAudioId, style })
+        const authHeader = key.startsWith('Key ') ? key : `Key ${key}`;
+        const queueUrl = `https://queue.fal.run/${videoModel}`;
+        
+        const submitRes = await executeRequest(queueUrl, 'POST', {
+          "Authorization": authHeader,
+          "Content-Type": "application/json"
+        }, {
+          prompt: videoPrompt,
+          aspect_ratio: "9:16",
+          duration: "5"
         });
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.error?.message || "Ошибка рендеринга видео");
+
+        const submitData = await submitRes.json();
+        if (!submitRes.ok || !submitData.request_id) {
+          throw new Error(submitData.detail || submitData.message || "Не удалось создать задачу на Fal.ai");
+        }
+
+        const requestId = submitData.request_id;
+        progressText.innerText = "2/3: В очереди Fal.ai (генерация нейросетью)...";
+
+        let videoUrl = null;
+        for (let i = 0; i < 40; i++) {
+          await new Promise(r => setTimeout(r, 4000));
+          const statusUrl = `https://queue.fal.run/${videoModel}/requests/${requestId}/status`;
+          const statRes = await executeRequest(statusUrl, 'GET', { "Authorization": authHeader });
+          const statData = await statRes.json();
+
+          if (statData.status === 'COMPLETED') {
+            const resultUrl = `https://queue.fal.run/${videoModel}/requests/${requestId}`;
+            const resData = await executeRequest(resultUrl, 'GET', { "Authorization": authHeader });
+            const finalData = await resData.json();
+            videoUrl = finalData.video?.url;
+            break;
+          } else if (statData.status === 'IN_PROGRESS') {
+            progressText.innerText = `Нейросеть рендерит видео Shorts (${(i+1)*4} сек)...`;
+          } else if (statData.status === 'FAILED') {
+            throw new Error("Fal.ai сообщил об ошибке рендеринга видео");
+          }
+        }
+
+        if (!videoUrl) throw new Error("Таймаут генерации видео на Fal.ai.");
 
         const videoPlayer = document.getElementById('videoPlayer');
-        const downloadBtn = document.getElementById('videoDownloadBtn');
-        videoPlayer.src = data.video_url;
-        downloadBtn.href = data.video_url;
-        downloadBtn.download = data.filename;
+        const dlBtn = document.getElementById('videoDownloadBtn');
+        videoPlayer.src = videoUrl;
+        dlBtn.href = videoUrl;
 
         document.getElementById('videoPlayerSection').classList.remove('hidden');
         document.getElementById('videoPlayerSection').scrollIntoView({ behavior: 'smooth' });
         videoPlayer.play();
 
       } catch (err) {
-        alert("⚠️ " + (err.message || "Ошибка создания видео"));
+        alert("⚠️ " + (err.message || "Ошибка"));
       } finally {
+        progressBox.classList.add('hidden');
         btn.disabled = false;
         btn.innerHTML = oldHtml;
       }
+    }
+
+    function copyAiVideoPrompt() {
+      let prompt = "Vertical 9:16 cinematic video, hyperrealistic 8K, smooth camera zoom, volumetric lighting";
+      if (currentAiData) {
+        prompt = currentAiData.video_prompt || `${currentAiData.hook || ''}, ${currentAiData.visuals || ''}, vertical 9:16 cinematic 8k`;
+      }
+      navigator.clipboard.writeText(prompt).then(() => {
+        alert("✓ Кинематографичный 9:16 промпт скопирован в буфер для Kling / Runway / Sora!");
+      });
     }
 
     function copyBlock(elementId) {
