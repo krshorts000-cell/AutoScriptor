@@ -117,33 +117,42 @@ class AutoScriptorHandler(http.server.SimpleHTTPRequestHandler):
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length)
 
-        # 1. Проксирование AI запросов
-        if self.path == '/api/chat':
+        # 1. Универсальное проксирование запросов к нейросетям (OpenRouter, ElevenLabs, Fal.ai, etc.)
+        if self.path in ('/api/chat', '/api/proxy'):
             try:
                 payload = json.loads(post_data.decode('utf-8'))
                 endpoint = payload.get('endpoint')
+                method = payload.get('method', 'POST').upper()
                 headers = payload.get('headers', {})
-                body = payload.get('body', {})
+                body = payload.get('body', None)
 
                 headers.pop('Host', None)
                 headers.pop('host', None)
                 headers.setdefault('User-Agent', 'AutoScriptor/1.0')
 
-                req_data = json.dumps(body).encode('utf-8')
-                req = urllib.request.Request(endpoint, data=req_data, headers=headers, method='POST')
+                req_data = None
+                if method != 'GET' and body is not None:
+                    if isinstance(body, (dict, list)):
+                        req_data = json.dumps(body).encode('utf-8')
+                        headers.setdefault('Content-Type', 'application/json')
+                    elif isinstance(body, str):
+                        req_data = body.encode('utf-8')
 
-                with urllib.request.urlopen(req, timeout=120) as resp:
+                req = urllib.request.Request(endpoint, data=req_data, headers=headers, method=method)
+
+                with urllib.request.urlopen(req, timeout=180) as resp:
                     resp_status = resp.status
+                    resp_content_type = resp.headers.get('Content-Type', 'application/json')
                     resp_data = resp.read()
                     
                 self.send_response(resp_status)
-                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Type', resp_content_type)
                 self.end_headers()
                 self.wfile.write(resp_data)
             except urllib.error.HTTPError as e:
                 err_data = e.read()
                 self.send_response(e.code)
-                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Type', e.headers.get('Content-Type', 'application/json'))
                 self.end_headers()
                 self.wfile.write(err_data)
             except Exception as e:
