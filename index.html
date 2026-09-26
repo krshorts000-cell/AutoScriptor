@@ -80,7 +80,28 @@
     .punch-zoom {
       animation: pulsePunch 4s infinite ease-in-out;
     }
-  </style>
+  
+    @keyframes cameraShake {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      20% { transform: translate(-2px, 3px) rotate(-0.5deg); }
+      40% { transform: translate(3px, -2px) rotate(0.5deg); }
+      60% { transform: translate(-3px, -1px) rotate(-0.5deg); }
+      80% { transform: translate(2px, 2px) rotate(0.5deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+    .cam-shake {
+      animation: cameraShake 0.22s ease-out;
+    }
+    .vignette-layer {
+      background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.85) 100%);
+    }
+    .film-grain {
+      background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
+    }
+    .capcut-pos-top { margin-top: 1.5rem !important; margin-bottom: auto !important; }
+    .capcut-pos-center { margin-top: auto !important; margin-bottom: auto !important; }
+    .capcut-pos-bottom { margin-top: auto !important; margin-bottom: 2.5rem !important; }
+</style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-3 pb-16 font-sans antialiased selection:bg-indigo-500 selection:text-white">
   <div class="max-w-xl mx-auto space-y-4">
@@ -625,6 +646,10 @@
           
           <!-- Фоновый слой (Анимированный градиент или видео) -->
           <div id="capcutBgLayer" class="absolute inset-0 bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-900 punch-zoom transition-transform duration-700"></div>
+          <video id="capcutBgVideo" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none" loop playsinline muted></video>
+          <img id="capcutBgImage" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none">
+          <div id="capcutVignette" class="absolute inset-0 vignette-layer pointer-events-none transition-opacity duration-300"></div>
+          <div id="capcutGrain" class="absolute inset-0 film-grain pointer-events-none opacity-20 mix-blend-overlay hidden"></div>
           
           <!-- Верхний бейдж канала / Shorts -->
           <div class="relative z-10 flex items-center justify-between text-[11px] text-slate-300">
@@ -673,10 +698,78 @@
           </button>
         </div>
 
+        <!-- ============================================== -->
+        <!-- 🎛️ ИНТЕРАКТИВНЫЙ МНОГОДОРОЖЕЧНЫЙ ТАЙМЛАЙН -->
+        <!-- ============================================== -->
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2.5 shadow-xl">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+              <span class="text-xs font-black text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-sliders text-indigo-400"></i> Таймлайн дорожек
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-300 bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-800">
+              <span id="timelineCurTime" class="text-amber-400 font-bold">0:00.0</span> / <span id="timelineTotTime">0:15.0</span>
+            </div>
+          </div>
+
+          <!-- Интерактивная область таймлайна с дорожками -->
+          <div id="timelineContainer" onclick="seekTimelineByClick(event)" class="relative bg-slate-900/90 rounded-xl border border-slate-800 overflow-hidden cursor-pointer select-none">
+            
+            <!-- Дорожка 1: Видео / Фон -->
+            <div class="h-6 flex items-center px-2 text-[9px] font-bold border-b border-slate-800/60 bg-indigo-950/20 text-indigo-300">
+              <span class="w-14 flex-shrink-0 flex items-center gap-1"><i class="fa-solid fa-film text-[8px]"></i> Фон:</span>
+              <div id="trackVideoLabel" class="flex-1 h-4 rounded bg-indigo-600/30 border border-indigo-500/40 flex items-center px-1.5 text-[8px] text-indigo-200 overflow-hidden text-ellipsis whitespace-nowrap">
+                🌌 Cyber Grid 9:16
+              </div>
+            </div>
+
+            <!-- Дорожка 2: Озвучка -->
+            <div class="h-6 flex items-center px-2 text-[9px] font-bold border-b border-slate-800/60 bg-amber-950/20 text-amber-300">
+              <span class="w-14 flex-shrink-0 flex items-center gap-1"><i class="fa-solid fa-microphone text-[8px]"></i> Голос:</span>
+              <div id="trackAudioWave" class="flex-1 h-4 rounded bg-amber-500/30 border border-amber-500/40 flex items-center px-1.5 text-[8px] text-amber-200 overflow-hidden text-ellipsis whitespace-nowrap">
+                🎙 Аудиодорожка речи (Синхрон)
+              </div>
+            </div>
+
+            <!-- Дорожка 3: Субтитры (Интерактивные фразы-чипы) -->
+            <div class="h-8 flex items-center px-2 text-[9px] font-bold border-b border-slate-800/60 bg-emerald-950/20 text-emerald-300">
+              <span class="w-14 flex-shrink-0 flex items-center gap-1"><i class="fa-solid fa-closed-captioning text-[8px]"></i> Текст:</span>
+              <div id="trackSubtitleChips" class="flex-1 h-6 flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
+                <span class="px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-300 text-[8px] whitespace-nowrap border border-emerald-500/40">Фраза 1</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[8px] whitespace-nowrap">Фраза 2</span>
+              </div>
+            </div>
+
+            <!-- Дорожка 4: Саунд & SFX -->
+            <div class="h-6 flex items-center px-2 text-[9px] font-bold bg-purple-950/20 text-purple-300">
+              <span class="w-14 flex-shrink-0 flex items-center gap-1"><i class="fa-solid fa-music text-[8px]"></i> SFX:</span>
+              <div class="flex-1 h-4 rounded bg-purple-600/30 border border-purple-500/40 flex items-center justify-between px-1.5 text-[8px] text-purple-200">
+                <span>🎵 Музыка (Ducking)</span>
+                <span class="text-pink-300 font-bold">💥 SFX: Whoosh + Pop</span>
+              </div>
+            </div>
+
+            <!-- Курсор времени (Playhead) -->
+            <div id="timelinePlayhead" class="absolute top-0 bottom-0 w-0.5 bg-red-500 pointer-events-none shadow-lg z-20" style="left: 0%;">
+              <div class="w-2.5 h-2.5 bg-red-500 rounded-full -ml-1 shadow"></div>
+            </div>
+          </div>
+
+          <!-- Панель быстрых правок субтитров -->
+          <div class="flex items-center justify-between text-[11px] pt-0.5">
+            <button type="button" onclick="openSubtitleEditorModal()" class="text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1.5 active:scale-95 transition-transform">
+              <i class="fa-solid fa-pen-to-square"></i> <span>Править субтитры вручную</span>
+            </button>
+            <span class="text-[10px] text-slate-500">Клик по шкале перематывает видео</span>
+          </div>
+        </div>
+
         <!-- НАСТРОЙКИ МОНТАЖА CAPCUT -->
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-3 text-xs">
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-3.5 text-xs">
           
-          <!-- 1. Стиль субтитров & Цвет -->
+          <!-- 1. Стиль караоке & Цвет активного слова -->
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-[10px] text-slate-400 mb-1 font-bold">Стиль караоке:</label>
@@ -694,11 +787,52 @@
                 <option value="#00FF66">🟢 Neon Green</option>
                 <option value="#00F0FF">🔵 Cyan Punch</option>
                 <option value="#FF2E93">🔴 Hot Pink</option>
+                <option value="#FFFFFF">⚪ Pure White</option>
               </select>
             </div>
           </div>
 
-          <!-- 2. Фоновая музыка (BGM) & Эффекты -->
+          <!-- 2. Размер шрифта & Позиция субтитров -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1 font-bold">Позиция субтитров:</label>
+              <select id="capcutPosSelect" onchange="updateSubtitleLayout()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+                <option value="center">↕️ Центр экрана</option>
+                <option value="bottom">⬇️ Нижняя треть (Reels/Shorts)</option>
+                <option value="top">⬆️ Верх экрана</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1 font-bold">Размер шрифта:</label>
+              <select id="capcutSizeSelect" onchange="updateSubtitleLayout()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+                <option value="text-2xl">Крупный (Hormozi 2XL)</option>
+                <option value="text-xl">Стандартный (XL)</option>
+                <option value="text-3xl">Гигантский (3XL)</option>
+                <option value="text-lg">Компактный (LG)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 3. Фоновые футажи / B-Roll -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-[10px] text-slate-400 font-bold">Фоновое видео & B-Roll:</label>
+              <button type="button" onclick="document.getElementById('bgMediaInput').click()" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1 active:scale-95">
+                <i class="fa-solid fa-cloud-arrow-up"></i> <span>Загрузить свой фон</span>
+              </button>
+              <input type="file" id="bgMediaInput" accept="video/*,image/*" onchange="handleCustomBgUpload(event)" class="hidden">
+            </div>
+            <select id="capcutBgSelect" onchange="changeBgStyle(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+              <option value="cyber">🌌 Киберпанк Градиент (Deep Cyber)</option>
+              <option value="crimson">🔴 Драматичный Пульс (Crimson Red)</option>
+              <option value="matrix">🟢 Матрица & Код (Emerald Code)</option>
+              <option value="gold">🟡 Золотой Бизнес (Gold Luxury)</option>
+              <option value="cinema">🌑 Кинематографичный Тёмный (Dark Cinema)</option>
+              <option value="custom">📁 Загруженный видео-футаж / Фото</option>
+            </select>
+          </div>
+
+          <!-- 4. Фоновая музыка (BGM) & Эффекты -->
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-[10px] text-slate-400 mb-1 font-bold">Фоновая музыка (BGM):</label>
@@ -715,19 +849,33 @@
             </div>
           </div>
 
-          <!-- 3. Тумблеры: Punch Zoom & Эмодзи -->
-          <div class="flex items-center justify-between pt-1 border-t border-slate-900">
+          <!-- 5. Тумблеры эффектов: SFX, Зум, Эмодзи, Виньетка, Зерно -->
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="capcutSfxToggle" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
+              <span class="text-[11px] text-amber-300 font-bold">💥 Звуки SFX (Whoosh, Pop, Cash)</span>
+            </label>
             <label class="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" id="capcutPunchZoom" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
               <span class="text-[11px] text-slate-300 font-semibold">Наезд камеры (Punch Zoom)</span>
             </label>
             <label class="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" id="capcutEmojiToggle" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
-              <span class="text-[11px] text-slate-300 font-semibold">Авто-эмодзи (🔥 💰 🚀)</span>
+              <span class="text-[11px] text-slate-300 font-semibold">Всплывающие эмодзи 🔥</span>
             </label>
-          </div>
-
-        </div>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="capcutVignetteToggle" checked onchange="toggleVignette()" class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
+              <span class="text-[11px] text-slate-300 font-semibold">Киновиньетка (Vignette)</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="capcutGrainToggle" onchange="toggleGrain()" class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
+              <span class="text-[11px] text-slate-300 font-semibold">Пленочное зерно (Grain)</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="capcutCamShakeToggle" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
+              <span class="text-[11px] text-slate-300 font-semibold">Тряска экрана (Shake)</span>
+            </label>
+          </div></div>
 
         <!-- КНОПКА ЭКСПОРТА ГОТОВОГО ВИДЕО -->
         <div class="grid grid-cols-2 gap-2 pt-1">
@@ -2049,6 +2197,322 @@ async function callAI(provider, key, text) {
     // ==============================================
     // 🎬 ДВИЖОК CAPCUT КАРАОКЕ-СУБТИТРОВ
     // ==============================================
+    
+    // ==============================================
+    // 🎛️ ДВИЖОК МОНТАЖА CAPCUT: SFX, ТАЙМЛАЙН & ЭКСПОРТ
+    // ==============================================
+    let lastActivePhraseIndex = -1;
+
+    function playSfx(type) {
+      const toggle = document.getElementById('capcutSfxToggle');
+      if (toggle && !toggle.checked) return;
+      initWebAudio();
+      if (webAudioCtx.state === 'suspended') webAudioCtx.resume();
+      const now = webAudioCtx.currentTime;
+
+      try {
+        if (type === 'whoosh') {
+          const osc = webAudioCtx.createOscillator();
+          const gain = webAudioCtx.createGain();
+          const filter = webAudioCtx.createBiquadFilter();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(450, now);
+          osc.frequency.exponentialRampToValueAtTime(120, now + 0.18);
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(1400, now);
+          filter.frequency.exponentialRampToValueAtTime(250, now + 0.18);
+
+          gain.gain.setValueAtTime(0.35, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(webAudioCtx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.18);
+
+        } else if (type === 'pop') {
+          const osc = webAudioCtx.createOscillator();
+          const gain = webAudioCtx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1400, now);
+          osc.frequency.exponentialRampToValueAtTime(700, now + 0.09);
+
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+          osc.connect(gain);
+          gain.connect(webAudioCtx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.09);
+
+        } else if (type === 'cash') {
+          [2093, 2637, 3135].forEach((freq, i) => {
+            const osc = webAudioCtx.createOscillator();
+            const gain = webAudioCtx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.04);
+
+            gain.gain.setValueAtTime(0.2, now + i * 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.25);
+
+            osc.connect(gain);
+            gain.connect(webAudioCtx.destination);
+
+            osc.start(now + i * 0.04);
+            osc.stop(now + i * 0.04 + 0.25);
+          });
+
+        } else if (type === 'camera') {
+          const osc = webAudioCtx.createOscillator();
+          const gain = webAudioCtx.createGain();
+
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(750, now);
+          osc.frequency.exponentialRampToValueAtTime(150, now + 0.06);
+
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+          osc.connect(gain);
+          gain.connect(webAudioCtx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.06);
+        }
+      } catch (e) {
+        console.warn('SFX error:', e);
+      }
+    }
+
+    function seekTimelineByClick(event) {
+      const container = document.getElementById('timelineContainer');
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, clickX / rect.width));
+      const targetTime = pct * audioDuration;
+      seekCapCut(targetTime);
+    }
+
+    function seekCapCut(targetTime) {
+      const player = document.getElementById('ttsAudioPlayer');
+      if (player && currentAudioUrl) {
+        player.currentTime = Math.min(targetTime, player.duration || audioDuration);
+      }
+      renderCapCutFrame(targetTime);
+    }
+
+    function renderTimelineChips() {
+      const container = document.getElementById('trackSubtitleChips');
+      if (!container) return;
+      container.innerHTML = '';
+
+      capcutPhrases.forEach((p, idx) => {
+        const text = p.words.map(w => w.word).join(' ');
+        const chip = document.createElement('span');
+        chip.id = `subChip_${idx}`;
+        chip.className = "px-2 py-0.5 rounded text-[8px] font-bold whitespace-nowrap cursor-pointer transition-all border border-slate-700 bg-slate-800 text-slate-300 hover:text-white";
+        chip.innerText = text.length > 20 ? text.substring(0, 18) + '...' : text;
+        chip.onclick = (e) => {
+          e.stopPropagation();
+          seekCapCut(p.start);
+        };
+        container.appendChild(chip);
+      });
+
+      const totEl = document.getElementById('timelineTotTime');
+      if (totEl) totEl.innerText = formatTime(audioDuration);
+    }
+
+    function updateTimelineCursor(time) {
+      const pct = Math.min(100, (time / Math.max(0.1, audioDuration)) * 100);
+      const playhead = document.getElementById('timelinePlayhead');
+      if (playhead) playhead.style.left = pct + '%';
+
+      const curEl = document.getElementById('timelineCurTime');
+      if (curEl) curEl.innerText = (time).toFixed(1) + 's';
+
+      // Подсвечиваем активный чип субтитров
+      capcutPhrases.forEach((p, idx) => {
+        const chip = document.getElementById(`subChip_${idx}`);
+        if (!chip) return;
+        if (time >= p.start && time <= p.end) {
+          chip.className = "px-2 py-0.5 rounded text-[8px] font-bold whitespace-nowrap cursor-pointer transition-all border border-emerald-400 bg-emerald-500/40 text-emerald-200 shadow-md";
+        } else {
+          chip.className = "px-2 py-0.5 rounded text-[8px] font-bold whitespace-nowrap cursor-pointer transition-all border border-slate-700 bg-slate-800 text-slate-400 hover:text-white";
+        }
+      });
+    }
+
+    function changeBgStyle(val) {
+      const bgLayer = document.getElementById('capcutBgLayer');
+      const bgVideo = document.getElementById('capcutBgVideo');
+      const bgImage = document.getElementById('capcutBgImage');
+      const label = document.getElementById('trackVideoLabel');
+
+      bgVideo.classList.add('hidden');
+      bgImage.classList.add('hidden');
+      bgLayer.classList.remove('hidden');
+
+      const bgGradients = {
+        'cyber': {
+          class: 'bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-900',
+          title: '🌌 Cyber Grid 9:16'
+        },
+        'crimson': {
+          class: 'bg-gradient-to-b from-black via-red-950 to-slate-950',
+          title: '🔴 Crimson Pulse 9:16'
+        },
+        'matrix': {
+          class: 'bg-gradient-to-b from-black via-emerald-950 to-slate-950',
+          title: '🟢 Emerald Code 9:16'
+        },
+        'gold': {
+          class: 'bg-gradient-to-b from-black via-amber-950 to-slate-950',
+          title: '🟡 Gold Luxury 9:16'
+        },
+        'cinema': {
+          class: 'bg-gradient-to-b from-slate-950 via-slate-900 to-black',
+          title: '🌑 Dark Cinema 9:16'
+        }
+      };
+
+      if (val === 'custom') {
+        document.getElementById('bgMediaInput').click();
+        return;
+      }
+
+      if (bgGradients[val]) {
+        bgLayer.className = `absolute inset-0 ${bgGradients[val].class} punch-zoom transition-transform duration-700`;
+        if (label) label.innerText = bgGradients[val].title;
+      }
+    }
+
+    function handleCustomBgUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const url = URL.createObjectURL(file);
+      const bgLayer = document.getElementById('capcutBgLayer');
+      const bgVideo = document.getElementById('capcutBgVideo');
+      const bgImage = document.getElementById('capcutBgImage');
+      const label = document.getElementById('trackVideoLabel');
+
+      if (file.type.startsWith('video/')) {
+        bgLayer.classList.add('hidden');
+        bgImage.classList.add('hidden');
+        bgVideo.src = url;
+        bgVideo.classList.remove('hidden');
+        bgVideo.play();
+        if (label) label.innerText = `🎬 Видео: ${file.name.substring(0, 16)}...`;
+      } else if (file.type.startsWith('image/')) {
+        bgLayer.classList.add('hidden');
+        bgVideo.classList.add('hidden');
+        bgImage.src = url;
+        bgImage.classList.remove('hidden');
+        if (label) label.innerText = `🖼 Фото: ${file.name.substring(0, 16)}...`;
+      }
+
+      const select = document.getElementById('capcutBgSelect');
+      if (select) select.value = 'custom';
+      if (isAndroid) AndroidBridge.showToast("✓ Пользовательский фон загружен");
+    }
+
+    function updateSubtitleLayout() {
+      const pos = document.getElementById('capcutPosSelect').value;
+      const size = document.getElementById('capcutSizeSelect').value;
+      const container = document.getElementById('capcutCaptionContainer');
+      const wordsBox = document.getElementById('capcutWordsBox');
+
+      if (container) {
+        container.classList.remove('capcut-pos-top', 'capcut-pos-center', 'capcut-pos-bottom', 'my-auto');
+        container.classList.add(`capcut-pos-${pos}`);
+      }
+      if (wordsBox) {
+        wordsBox.classList.remove('text-lg', 'text-xl', 'text-2xl', 'text-3xl');
+        wordsBox.classList.add(size);
+      }
+    }
+
+    function toggleVignette() {
+      const vig = document.getElementById('capcutVignette');
+      const chk = document.getElementById('capcutVignetteToggle');
+      if (vig && chk) {
+        vig.style.opacity = chk.checked ? '1' : '0';
+      }
+    }
+
+    function toggleGrain() {
+      const grain = document.getElementById('capcutGrain');
+      const chk = document.getElementById('capcutGrainToggle');
+      if (grain && chk) {
+        grain.classList.toggle('hidden', !chk.checked);
+      }
+    }
+
+    // Редактор субтитров вручную
+    function openSubtitleEditorModal() {
+      const modal = document.getElementById('subtitleModal');
+      const list = document.getElementById('subtitleModalList');
+      if (!modal || !list) return;
+
+      list.innerHTML = '';
+      capcutPhrases.forEach((p, idx) => {
+        const text = p.words.map(w => w.word).join(' ');
+        const row = document.createElement('div');
+        row.className = "bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1";
+        row.innerHTML = `
+          <div class="flex items-center justify-between text-[10px] text-slate-400">
+            <span class="font-bold text-indigo-400">Фраза #${idx + 1} (${p.start.toFixed(1)}s - ${p.end.toFixed(1)}s)</span>
+          </div>
+          <input type="text" id="editSub_${idx}" value="${text}" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none font-bold">
+        `;
+        list.appendChild(row);
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeSubtitleEditorModal() {
+      const modal = document.getElementById('subtitleModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveEditedSubtitles() {
+      capcutPhrases.forEach((p, idx) => {
+        const input = document.getElementById(`editSub_${idx}`);
+        if (!input) return;
+        const newWords = input.value.trim().split(/\s+/).filter(w => w.length > 0);
+        if (newWords.length > 0) {
+          const charCount = newWords.reduce((acc, w) => acc + w.length, 0);
+          const dur = p.end - p.start;
+          let curTime = p.start;
+          p.words = newWords.map(w => {
+            const wDur = (w.length / Math.max(1, charCount)) * dur;
+            const wObj = {
+              word: w.toUpperCase(),
+              clean: w.toLowerCase().replace(/[^a-zа-яё0-9]/gi, ''),
+              start: curTime,
+              end: curTime + wDur
+            };
+            curTime += wDur;
+            return wObj;
+          });
+        }
+      });
+
+      renderTimelineChips();
+      closeSubtitleEditorModal();
+      if (isAndroid) AndroidBridge.showToast("✅ Субтитры обновлены!");
+    }
+
     function buildCapCutPhrases(scriptText, duration = 15) {
       audioDuration = duration;
       const clean = scriptText.replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').replace(/#+/g, '').trim();
@@ -2176,9 +2640,11 @@ async function callAI(provider, key, text) {
       const player = document.getElementById('ttsAudioPlayer');
       if (currentAudioUrl) player.currentTime = 0;
       renderCapCutFrame(0);
+      renderTimelineChips();
     }
 
     function renderCapCutFrame(time) {
+      updateTimelineCursor(time);
       document.getElementById('capcutTimeCurrent').innerText = formatTime(time);
       const pct = Math.min(100, (time / Math.max(0.1, audioDuration)) * 100);
       document.getElementById('capcutProgressBar').style.width = pct + '%';
@@ -2187,6 +2653,18 @@ async function callAI(provider, key, text) {
 
       // Находим текущую фразу
       const activePhrase = capcutPhrases.find(p => time >= p.start && time <= p.end) || capcutPhrases[0];
+      // Проверяем смену фразы для Whoosh SFX и Shake
+      const phraseIndex = capcutPhrases.findIndex(p => time >= p.start && time <= p.end);
+      if (phraseIndex !== -1 && phraseIndex !== lastActivePhraseIndex) {
+        lastActivePhraseIndex = phraseIndex;
+        playSfx('whoosh');
+        const canvasContainer = document.getElementById('capcutCaptionContainer');
+        const shakeEnabled = document.getElementById('capcutCamShakeToggle')?.checked;
+        if (canvasContainer && shakeEnabled) {
+          canvasContainer.classList.add('cam-shake');
+          setTimeout(() => canvasContainer.classList.remove('cam-shake'), 250);
+        }
+      }
       const style = document.getElementById('capcutStyleSelect').value;
       const highlightColor = document.getElementById('capcutColorSelect').value;
       const emojiEnabled = document.getElementById('capcutEmojiToggle').checked;
@@ -2203,6 +2681,11 @@ async function callAI(provider, key, text) {
 
         if (isActive && emojiEnabled && EMOJI_MAP[w.clean]) {
           matchedEmoji = EMOJI_MAP[w.clean];
+          if (w.clean.match(/(деньги|рубл|доллар|миллион|доход|прибыль|богат)/)) {
+            playSfx('cash');
+          } else {
+            playSfx('pop');
+          }
         }
 
         html += `<span class="word-${style}${activeClass}"${colorStyle}>${w.word}</span>`;
@@ -2290,12 +2773,200 @@ async function callAI(provider, key, text) {
     // 🎬 ЭКСПОРТ ВИДЕО 9:16
     // ==============================================
     async function exportCapCutVideo() {
+      const btn = document.getElementById('btnExportCapCut');
+      const originalHtml = btn.innerHTML;
+
       if (isAndroid) {
-        AndroidBridge.showToast("🎬 Экспорт видео 9:16 со стилем CapCut...");
-      } else {
-        alert("🎬 Экспорт видео 9:16 со стилем CapCut...");
+        AndroidBridge.showToast("🎬 Начинаем рендеринг видео 9:16 со стилями CapCut...");
       }
-      playCapCut();
+
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Рендеринг 9:16...</span>`;
+
+      try {
+        if (!window.MediaRecorder) {
+          throw new Error("MediaRecorder не поддерживается на вашем устройстве");
+        }
+
+        const width = 720;
+        const height = 1280;
+        let canvas = document.getElementById('exportCanvas');
+        if (!canvas) {
+          canvas = document.createElement('canvas');
+          canvas.id = 'exportCanvas';
+          canvas.width = width;
+          canvas.height = height;
+          canvas.style.display = 'none';
+          document.body.appendChild(canvas);
+        }
+        const ctx = canvas.getContext('2d');
+
+        const stream = canvas.captureStream(30);
+
+        initWebAudio();
+        const dest = webAudioCtx.createMediaStreamDestination();
+        if (bgmGainNode) bgmGainNode.connect(dest);
+
+        // Подключаем речь (TTS) к MediaStream, если возможно
+        const ttsAudio = document.getElementById('ttsAudioPlayer');
+        if (ttsAudio && !ttsAudio._webaudio_source) {
+          try {
+            ttsAudio._webaudio_source = webAudioCtx.createMediaElementSource(ttsAudio);
+            ttsAudio._webaudio_source.connect(webAudioCtx.destination);
+            ttsAudio._webaudio_source.connect(dest);
+          } catch(e) {
+            console.warn('Audio element source connect:', e);
+          }
+        }
+
+        let mimeType = 'video/webm';
+        if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) mimeType = 'video/mp4';
+        else if (MediaRecorder.isTypeSupported('video/mp4')) mimeType = 'video/mp4';
+        else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) mimeType = 'video/webm;codecs=vp9';
+
+        const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6000000 });
+        const chunks = [];
+
+        recorder.ondataavailable = e => {
+          if (e.data.size > 0) chunks.push(e.data);
+        };
+
+        const recordPromise = new Promise((resolve, reject) => {
+          recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: mimeType });
+            resolve(blob);
+          };
+          recorder.onerror = reject;
+        });
+
+        recorder.start();
+        seekCapCut(0);
+        playCapCut();
+
+        const startTime = performance.now();
+        const totalDur = audioDuration;
+
+        function recordLoop() {
+          const elapsed = (performance.now() - startTime) / 1000;
+          
+          // 1. Отрисовка фона (видео, картинка или выбранный градиент)
+          const bgVideo = document.getElementById('capcutBgVideo');
+          const bgImage = document.getElementById('capcutBgImage');
+          if (bgVideo && !bgVideo.classList.contains('hidden') && bgVideo.readyState >= 2) {
+            ctx.drawImage(bgVideo, 0, 0, width, height);
+          } else if (bgImage && !bgImage.classList.contains('hidden') && bgImage.complete) {
+            ctx.drawImage(bgImage, 0, 0, width, height);
+          } else {
+            const bgVal = document.getElementById('capcutBgSelect')?.value || 'cyber';
+            const gradColors = {
+              'cyber': ['#1e1b4b', '#020617'],
+              'crimson': ['#450a0a', '#020617'],
+              'matrix': ['#052e16', '#020617'],
+              'gold': ['#451a03', '#020617'],
+              'cinema': ['#0f172a', '#000000']
+            };
+            const cols = gradColors[bgVal] || ['#1e1b4b', '#020617'];
+
+            ctx.fillStyle = cols[1];
+            ctx.fillRect(0, 0, width, height);
+
+            const radGrad = ctx.createRadialGradient(width/2, height/2, 60, width/2, height/2, width*0.9);
+            radGrad.addColorStop(0, cols[0]);
+            radGrad.addColorStop(1, cols[1]);
+            ctx.fillStyle = radGrad;
+            ctx.fillRect(0, 0, width, height);
+          }
+
+          // 2. Киновиньетка
+          const vigToggle = document.getElementById('capcutVignetteToggle')?.checked;
+          if (vigToggle) {
+            const vig = ctx.createRadialGradient(width/2, height/2, width*0.35, width/2, height/2, width*0.85);
+            vig.addColorStop(0, 'rgba(0,0,0,0)');
+            vig.addColorStop(1, 'rgba(0,0,0,0.85)');
+            ctx.fillStyle = vig;
+            ctx.fillRect(0, 0, width, height);
+          }
+
+          // 3. Пленочное зерно (если включено)
+          const grainToggle = document.getElementById('capcutGrainToggle')?.checked;
+          if (grainToggle) {
+            ctx.fillStyle = 'rgba(255,255,255,0.03)';
+            for (let i = 0; i < 400; i++) {
+              const gx = Math.random() * width;
+              const gy = Math.random() * height;
+              ctx.fillRect(gx, gy, 2, 2);
+            }
+          }
+
+          // 4. Пословные субтитры Hormozi Караоке
+          if (capcutPhrases.length > 0) {
+            const activeP = capcutPhrases.find(p => elapsed >= p.start && elapsed <= p.end) || capcutPhrases[0];
+            const highlightColor = document.getElementById('capcutColorSelect')?.value || '#FFDE59';
+            const pos = document.getElementById('capcutPosSelect')?.value || 'center';
+            const sizeVal = document.getElementById('capcutSizeSelect')?.value || 'text-2xl';
+            const fontSizePx = sizeVal === 'text-3xl' ? 62 : (sizeVal === 'text-2xl' ? 52 : (sizeVal === 'text-xl' ? 42 : 34));
+
+            ctx.font = 'bold ' + fontSizePx + 'px Impact, "Arial Black", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const yPos = pos === 'top' ? height * 0.22 : (pos === 'bottom' ? height * 0.82 : height * 0.5);
+
+            const words = activeP.words;
+            const wordMeasures = words.map(w => ctx.measureText(w.word).width);
+            const spaceWidth = ctx.measureText(' ').width;
+            const totalTextWidth = wordMeasures.reduce((a, b) => a + b, 0) + spaceWidth * Math.max(0, words.length - 1);
+            let currentX = (width - totalTextWidth) / 2;
+
+            for (let i = 0; i < words.length; i++) {
+              const w = words[i];
+              const isWordActive = elapsed >= w.start && elapsed <= w.end;
+              const wWidth = wordMeasures[i];
+              const drawX = currentX + wWidth / 2;
+
+              ctx.lineWidth = 14;
+              ctx.strokeStyle = '#000000';
+              ctx.strokeText(w.word, drawX, yPos);
+
+              ctx.fillStyle = isWordActive ? highlightColor : '#ffffff';
+              ctx.fillText(w.word, drawX, yPos);
+
+              currentX += wWidth + spaceWidth;
+            }
+          }
+
+          if (elapsed < totalDur && isCapcutPlaying) {
+            requestAnimationFrame(recordLoop);
+          } else {
+            recorder.stop();
+            pauseCapCut();
+          }
+        }
+
+        requestAnimationFrame(recordLoop);
+
+        const videoBlob = await recordPromise;
+        const url = URL.createObjectURL(videoBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `AutoScriptor_Short_${Date.now()}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        if (isAndroid) AndroidBridge.showToast("✅ Видео 9:16 успешно сохранено!");
+        else alert("✅ Видео 9:16 готово и сохранено!");
+
+      } catch (err) {
+        console.error(err);
+        if (isAndroid) AndroidBridge.showToast("⚠️ " + (err.message || "Ошибка экспорта"));
+        else alert("⚠️ " + (err.message || "Ошибка экспорта"));
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+        btn.innerHTML = originalHtml;
+      }
     }
 
     function copyAiVideoPrompt() {
@@ -2326,5 +2997,38 @@ async function callAI(provider, key, text) {
       });
     }
   </script>
+
+    <!-- МОДАЛЬНОЕ ОКНО РУЧНОЙ ПРАВКИ СУБТИТРОВ -->
+    <div id="subtitleModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
+      <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-4 space-y-3.5 shadow-2xl max-h-[85vh] flex flex-col">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 text-xs">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-white">Редактор субтитров CapCut</h3>
+              <p class="text-[10px] text-slate-400">Точная подгонка фраз и таймингов караоке</p>
+            </div>
+          </div>
+          <button onclick="closeSubtitleEditorModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div id="subtitleModalList" class="flex-1 overflow-y-auto space-y-2 pr-1">
+          <!-- Фразы наполняются динамически -->
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+          <button onclick="closeSubtitleEditorModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 px-3.5 rounded-xl">
+            Отмена
+          </button>
+          <button onclick="saveEditedSubtitles()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs py-2 px-4 rounded-xl shadow-lg flex items-center gap-1.5 active:scale-95">
+            <i class="fa-solid fa-check"></i> <span>Применить правки</span>
+          </button>
+        </div>
+      </div>
+    </div>
 </body>
 </html>
