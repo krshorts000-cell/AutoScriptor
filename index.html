@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoScriptor — AI Video Script Cloner</title>
+  <title>AutoScriptor — AI Video Script Cloner & Shorts Generator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -19,7 +19,7 @@
         AutoScriptor
       </h1>
       <p class="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
-        Клонируй структуру успешных видео & Shorts и получай готовый виральный сценарий за секунды
+        Клонируй структуру успешных видео, генерируй сценарий, нейроозвучку и готовый Shorts/Reels в один клик
       </p>
     </header>
 
@@ -36,32 +36,6 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <!-- DeepSeek -->
-        <div class="space-y-2 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-indigo-300">DeepSeek / AI STAR</label>
-            <span id="starimgBadge" class="hidden text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">
-              AI STAR Ключ
-            </span>
-          </div>
-          <input type="password" id="keyDeepseek" oninput="handleDeepseekKeyChange()" placeholder="sk-... или sk-star-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
-          
-          <div class="space-y-1.5 pt-1">
-            <label class="block text-[11px] font-medium text-slate-400">Base URL (Сервер API):</label>
-            <input type="text" id="baseDeepseek" placeholder="https://api.deepseek.com/v1" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
-          </div>
-
-          <div class="space-y-1.5">
-            <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
-            <select id="modelDeepseek" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="deepseek-chat">deepseek-chat (Официальный DeepSeek V3)</option>
-              <option value="deepseek-v4-pro">deepseek-v4-pro (AI STAR / Агрегаторы)</option>
-              <option value="deepseek-v4.1-flash">deepseek-v4.1-flash (AI STAR Flash)</option>
-              <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek R1)</option>
-            </select>
-          </div>
-        </div>
-
         <!-- Google Gemini -->
         <div class="space-y-2 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
           <div class="flex items-center justify-between">
@@ -85,6 +59,32 @@
           <p class="text-[10px] text-slate-500 pt-1">
             Работает прямо из браузера на GitHub Pages без ограничений CORS.
           </p>
+        </div>
+
+        <!-- DeepSeek -->
+        <div class="space-y-2 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-indigo-300">DeepSeek / AI STAR</label>
+            <span id="starimgBadge" class="hidden text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">
+              AI STAR Ключ
+            </span>
+          </div>
+          <input type="password" id="keyDeepseek" oninput="handleDeepseekKeyChange()" placeholder="sk-... или sk-star-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+          
+          <div class="space-y-1.5 pt-1">
+            <label class="block text-[11px] font-medium text-slate-400">Base URL (Сервер API):</label>
+            <input type="text" id="baseDeepseek" placeholder="https://api.deepseek.com/v1" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
+            <select id="modelDeepseek" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="deepseek-v4-pro">deepseek-v4-pro (AI STAR / Агрегаторы)</option>
+              <option value="deepseek-chat">deepseek-chat (Официальный DeepSeek V3)</option>
+              <option value="deepseek-v4.1-flash">deepseek-v4.1-flash (AI STAR Flash)</option>
+              <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek R1)</option>
+            </select>
+          </div>
         </div>
 
         <!-- Qwen -->
@@ -143,6 +143,7 @@
 
     <!-- Результат -->
     <div id="resultContainer" class="hidden space-y-6">
+      
       <!-- Заголовок и хук -->
       <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl relative group">
         <div class="flex items-center justify-between mb-3">
@@ -170,6 +171,91 @@
           </button>
         </div>
         <div id="resScript" class="whitespace-pre-wrap text-slate-200 leading-relaxed text-sm md:text-base font-normal bg-slate-950/60 p-4 rounded-xl border border-slate-800"></div>
+      </div>
+
+      <!-- БЛОК ГЕНЕРАЦИИ ГОЛОСА И ВИДЕО -->
+      <div class="bg-gradient-to-b from-indigo-950/40 to-slate-900/90 p-6 rounded-2xl border border-indigo-500/30 shadow-2xl space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
+              <i class="fa-solid fa-clapperboard"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-black text-white">Нейроозвучка & Создание Shorts (9:16)</h3>
+              <p class="text-xs text-slate-400">Озвучь сценарий и собери готовое вертикальное видео с субтитрами</p>
+            </div>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            Бесплатно & Быстро
+          </span>
+        </div>
+
+        <!-- Параметры генерации -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">Голос диктора</label>
+            <select id="ttsVoice" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="ru-RU-DmitryNeural">Дмитрий (Мужской, энергичный)</option>
+              <option value="ru-RU-SvetlanaNeural">Светлана (Женский, мягкий)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">Темп речи</label>
+            <select id="ttsRate" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="+10%">+10% (Динамичный для Shorts)</option>
+              <option value="+0%">0% (Обычный темп)</option>
+              <option value="+20%">+20% (Быстрый драйв)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">Стиль фона видео</label>
+            <select id="videoStyle" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="cyber">Cyber Dark (Неоновый киберпанк)</option>
+              <option value="neon">Deep Indigo (Глубокий индиго)</option>
+              <option value="dark">Pure Black (Минималистичный)</option>
+              <option value="gaming">Gaming Dark (Игровой стиль)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+          <button onclick="generateVoice()" id="btnVoice" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-indigo-500/30 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-microphone-lines text-indigo-400"></i>
+            <span>🎙 Сгенерировать голос</span>
+          </button>
+          <button onclick="renderVideo()" id="btnVideo" class="flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-lg shadow-indigo-600/25 active:scale-95 flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-film"></i>
+            <span>🎬 Собрать видео (Shorts 9:16)</span>
+          </button>
+        </div>
+
+        <!-- Аудиоплеер (скрыт по умолчанию) -->
+        <div id="audioPlayerSection" class="hidden bg-slate-950/80 p-4 rounded-xl border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between text-xs text-slate-300">
+            <span class="font-bold flex items-center gap-1.5 text-emerald-400">
+              <i class="fa-solid fa-circle-check"></i> Аудиодорожка готова
+            </span>
+            <span id="audioDurationText" class="font-mono text-slate-400"></span>
+          </div>
+          <audio id="audioPlayer" controls class="w-full h-10 outline-none rounded-lg"></audio>
+        </div>
+
+        <!-- Видеоплеер (скрыт по умолчанию) -->
+        <div id="videoPlayerSection" class="hidden bg-slate-950/80 p-6 rounded-xl border border-slate-800 space-y-4 text-center">
+          <div class="flex items-center justify-between text-xs text-slate-300 pb-2 border-b border-slate-800">
+            <span class="font-bold flex items-center gap-1.5 text-amber-400">
+              <i class="fa-solid fa-sparkles"></i> Готовое видео Shorts (9:16)
+            </span>
+            <a id="videoDownloadBtn" href="#" download="shorts.mp4" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-all shadow-md flex items-center gap-1.5">
+              <i class="fa-solid fa-download"></i> Скачать MP4
+            </a>
+          </div>
+          <div class="max-w-[280px] sm:max-w-[320px] mx-auto rounded-2xl overflow-hidden shadow-2xl border-2 border-indigo-500/40 bg-black aspect-[9/16]">
+            <video id="videoPlayer" controls playsinline class="w-full h-full object-cover"></video>
+          </div>
+        </div>
+
       </div>
 
       <!-- Сетка описания и B-roll -->
@@ -203,27 +289,28 @@
           <p id="resVisuals" class="text-xs md:text-sm text-slate-300 whitespace-pre-wrap bg-slate-950/60 p-3 rounded-xl border border-slate-800 leading-relaxed"></p>
         </div>
       </div>
+
     </div>
 
   </div>
 
   <script>
     const isLocalServer = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    let currentAudioId = null;
 
     window.onload = () => {
-      // Индикатор сервера
       const badge = document.getElementById('serverBadge');
       if (isLocalServer) {
-        badge.innerHTML = '🟢 Локальный сервер (CORS отключен)';
+        badge.innerHTML = '🟢 Локальный сервер (Озвучка & Видео активны)';
         badge.className = 'text-emerald-400 font-semibold';
       }
 
-      // Загрузка сохранённых данных
+      // Загрузка сохранённых настроек
       const fields = [
         'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
         'keyGemini', 'modelGemini',
         'keyQwen', 'modelQwen',
-        'aiProvider'
+        'aiProvider', 'ttsVoice', 'ttsRate', 'videoStyle'
       ];
       
       fields.forEach(id => {
@@ -232,9 +319,9 @@
         if (val && el) el.value = val;
       });
 
-      // Автоматическая миграция устаревших моделей Gemini 1.5 на 2.5-flash
-      const storedGeminiModel = localStorage.getItem('modelGemini');
-      if (!storedGeminiModel || storedGeminiModel.startsWith('gemini-1.5')) {
+      // Автоматическая миграция моделей Gemini на 2.5-flash
+      const storedGemini = localStorage.getItem('modelGemini');
+      if (!storedGemini || storedGemini.startsWith('gemini-1.5')) {
         const geminiEl = document.getElementById('modelGemini');
         if (geminiEl) {
           geminiEl.value = 'gemini-2.5-flash';
@@ -272,13 +359,13 @@
         'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
         'keyGemini', 'modelGemini',
         'keyQwen', 'modelQwen',
-        'aiProvider'
+        'aiProvider', 'ttsVoice', 'ttsRate', 'videoStyle'
       ];
       fields.forEach(id => {
         const el = document.getElementById(id);
         if (el) localStorage.setItem(id, el.value.trim());
       });
-      alert("✅ Настройки и ключи сохранены");
+      alert("✅ Настройки успешно сохранены");
     }
 
     async function fetchSubtitles(url) {
@@ -288,10 +375,7 @@
       
       if (!videoId) throw new Error("Неверная ссылка на видео (поддерживаются YouTube и Shorts)");
 
-      // Сначала пробуем получить русские субтитры
       let res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt?lang=ru`);
-      
-      // Если русских нет, берем оригинальные
       if (!res.ok) {
         res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt`);
       }
@@ -387,7 +471,7 @@
         baseUrl = baseUrl.replace(/\/+$/, '');
         endpoint = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
 
-        const model = document.getElementById('modelDeepseek').value || 'deepseek-chat';
+        const model = document.getElementById('modelDeepseek').value || 'deepseek-v4-pro';
         headers = {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${key}`
@@ -401,7 +485,6 @@
           response_format: { type: "json_object" }
         };
       } else {
-        // Qwen
         const qwenModel = document.getElementById('modelQwen').value || 'qwen-plus';
         endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
         headers = {
@@ -419,7 +502,6 @@
       }
 
       let rawData;
-      // Если сайт открыт локально через server.py — проксируем через бэкенд, исключая проблемы CORS
       if (isLocalServer) {
         try {
           const res = await fetch('/api/chat', {
@@ -433,12 +515,10 @@
           throw new Error("Ошибка локального прокси: " + localErr.message);
         }
       } else {
-        // Режим онлайн (GitHub Pages) — прямой запрос
         try {
           let res = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify(body) });
           rawData = await res.json();
           
-          // Самовосстановление для Gemini, если модель устарела или не найдена
           if (!res.ok && provider === 'gemini' && (rawData.error?.code === 404 || rawData.error?.message?.includes('not found'))) {
             try {
               const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
@@ -472,7 +552,6 @@
         }
       }
 
-      // Извлечение текстового контента
       let contentStr = '';
       if (provider === 'gemini') {
         contentStr = rawData.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -482,7 +561,6 @@
 
       if (!contentStr) throw new Error("Нейросеть вернула пустой ответ");
 
-      // Очистка от markdown блоков ```json ... ```
       let cleanStr = contentStr.trim();
       const jsonMatch = cleanStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       if (jsonMatch) cleanStr = jsonMatch[1].trim();
@@ -492,6 +570,104 @@
       } catch (parseErr) {
         console.error("Parse error, raw response:", cleanStr);
         throw new Error("Не удалось распарсить JSON ответ от нейросети.");
+      }
+    }
+
+    // Генерация нейроозвучки
+    async function generateVoice() {
+      const scriptText = document.getElementById('resScript').innerText.trim();
+      if (!scriptText) return alert("❌ Сначала сгенерируйте сценарий!");
+
+      const voice = document.getElementById('ttsVoice').value;
+      const rate = document.getElementById('ttsRate').value;
+      const btn = document.getElementById('btnVoice');
+      const oldHtml = btn.innerHTML;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Озвучиваем...</span>`;
+
+      try {
+        if (!isLocalServer) {
+          // Если открыто онлайн на GitHub Pages — используем встроенный Web Speech API браузера
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(scriptText);
+            utterance.lang = 'ru-RU';
+            utterance.rate = rate === '+20%' ? 1.2 : (rate === '+10%' ? 1.1 : 1.0);
+            window.speechSynthesis.speak(utterance);
+            alert("🔊 Озвучивание запущено в браузере!\n\n💡 Чтобы генерировать студийную нейроозвучку в MP3 и собирать видео, запустите AutoScriptor локально через run.bat.");
+            return;
+          } else {
+            throw new Error("Для генерации MP3 аудио запустите AutoScriptor через run.bat!");
+          }
+        }
+
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: scriptText, voice, rate })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error?.message || "Ошибка генерации аудио");
+
+        currentAudioId = data.audio_id;
+        const player = document.getElementById('audioPlayer');
+        player.src = data.audio_url;
+        document.getElementById('audioDurationText').innerText = `Длительность: ~${data.duration} сек`;
+        document.getElementById('audioPlayerSection').classList.remove('hidden');
+        player.play();
+
+      } catch (err) {
+        alert("⚠️ " + (err.message || "Ошибка генерации озвучки"));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+      }
+    }
+
+    // Сборка видеоролика 9:16
+    async function renderVideo() {
+      if (!isLocalServer) {
+        return alert("🎬 Сборка видеоролика и наложение субтитров требуют FFmpeg на вашем компьютере!\n\nПожалуйста, запустите AutoScriptor через run.bat (на http://localhost:8000), и видео соберется за секунды.");
+      }
+
+      if (!currentAudioId) {
+        // Если аудио еще не сгенерировано, сначала сгенерируем его
+        await generateVoice();
+        if (!currentAudioId) return;
+      }
+
+      const style = document.getElementById('videoStyle').value;
+      const btn = document.getElementById('btnVideo');
+      const oldHtml = btn.innerHTML;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Монтируем видео (FFmpeg)...</span>`;
+
+      try {
+        const res = await fetch('/api/render-video', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ audio_id: currentAudioId, style })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error?.message || "Ошибка рендеринга видео");
+
+        const videoPlayer = document.getElementById('videoPlayer');
+        const downloadBtn = document.getElementById('videoDownloadBtn');
+        videoPlayer.src = data.video_url;
+        downloadBtn.href = data.video_url;
+        downloadBtn.download = data.filename;
+
+        document.getElementById('videoPlayerSection').classList.remove('hidden');
+        document.getElementById('videoPlayerSection').scrollIntoView({ behavior: 'smooth' });
+        videoPlayer.play();
+
+      } catch (err) {
+        alert("⚠️ " + (err.message || "Ошибка создания видео"));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
       }
     }
 
