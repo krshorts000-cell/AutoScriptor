@@ -2,11 +2,12 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoScriptor — Клонирование виральных видео & CapCut Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AutoScriptor Mobile & CapCut Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    * { -webkit-tap-highlight-color: transparent; }
     .tab-btn.active {
       background-color: rgb(79 70 229);
       color: white;
@@ -17,30 +18,30 @@
       font-family: 'Impact', 'Arial Black', sans-serif;
       text-transform: uppercase;
       color: white;
-      -webkit-text-stroke: 2.5px black;
-      filter: drop-shadow(0 4px 3px rgba(0,0,0,0.9));
+      -webkit-text-stroke: 2px black;
+      filter: drop-shadow(0 3px 2px rgba(0,0,0,0.9));
       display: inline-block;
-      margin: 0 5px;
+      margin: 0 4px;
       transition: all 0.08s ease-out;
     }
     .word-hormozi.active {
       transform: scale(1.18);
-      -webkit-text-stroke: 3px black;
+      -webkit-text-stroke: 2.5px black;
     }
 
     .word-mrbeast {
       font-family: 'Arial Black', sans-serif;
       text-transform: uppercase;
       color: #ffffff;
-      -webkit-text-stroke: 2.5px black;
-      filter: drop-shadow(0 5px 0 #000);
+      -webkit-text-stroke: 2px black;
+      filter: drop-shadow(0 4px 0 #000);
       display: inline-block;
-      margin: 0 5px;
+      margin: 0 4px;
       transition: all 0.08s ease-out;
     }
     .word-mrbeast.active {
-      transform: scale(1.22) rotate(-2deg);
-      -webkit-text-stroke: 3px black;
+      transform: scale(1.2) rotate(-2deg);
+      -webkit-text-stroke: 2.5px black;
     }
 
     .word-cyber {
@@ -48,14 +49,14 @@
       font-weight: 900;
       text-transform: uppercase;
       color: #e2e8f0;
-      letter-spacing: 1.5px;
+      letter-spacing: 1px;
       display: inline-block;
-      margin: 0 4px;
+      margin: 0 3px;
       transition: all 0.08s ease-out;
     }
     .word-cyber.active {
       transform: scale(1.15);
-      text-shadow: 0 0 14px currentColor, 0 0 28px currentColor;
+      text-shadow: 0 0 12px currentColor, 0 0 24px currentColor;
     }
 
     .word-minimal {
@@ -63,7 +64,7 @@
       font-weight: 700;
       color: #f8fafc;
       display: inline-block;
-      margin: 0 4px;
+      margin: 0 3px;
       transition: all 0.08s ease-out;
     }
     .word-minimal.active {
@@ -73,274 +74,364 @@
 
     @keyframes pulsePunch {
       0% { transform: scale(1); }
-      50% { transform: scale(1.06); }
+      50% { transform: scale(1.05); }
       100% { transform: scale(1); }
     }
     .punch-zoom {
-      animation: pulsePunch 4.5s infinite ease-in-out;
+      animation: pulsePunch 4s infinite ease-in-out;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 font-sans antialiased selection:bg-indigo-500 selection:text-white">
-  <div class="max-w-4xl mx-auto space-y-6">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-3 pb-16 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+  <div class="max-w-xl mx-auto space-y-4">
     
-    <!-- Шапка -->
-    <header class="text-center space-y-2">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium">
-        <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-        <span id="serverBadge">AutoScriptor Studio + CapCut Engine</span>
+    <!-- Шапка приложения -->
+    <header class="text-center space-y-1 pt-2">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+        <i class="fa-brands fa-android"></i> <span id="appBadge">Android App + CapCut Studio</span>
       </div>
-      <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400 tracking-tight">
+      <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400 tracking-tight">
         AutoScriptor
       </h1>
-      <p class="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
-        Клонирование виральных видео, нейроозвучка (ElevenLabs / Edge-TTS) и AI монтаж Shorts по типу CapCut (Hormozi, MrBeast, BGM)
+      <p class="text-slate-400 text-xs max-w-sm mx-auto">
+        Клонирование виральных видео, AI сценарии и монтаж Shorts в стиле CapCut
       </p>
     </header>
 
-    <!-- Настройки API Ключей (Вкладки Текст / Аудио / Видео) -->
-    <div class="bg-slate-900/90 backdrop-blur p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-key text-amber-400"></i>
-          <h2 class="text-base font-bold text-slate-200">Подключение API нейросетей (OpenRouter, ElevenLabs, Fal.ai)</h2>
-        </div>
-        <button onclick="saveKeys()" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-md active:scale-95">
-          <i class="fa-regular fa-floppy-disk"></i> Сохранить ключи
-        </button>
-      </div>
-
-      <!-- Табы категорий настроек -->
-      <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs font-semibold">
-        <button type="button" onclick="switchApiTab('text')" id="tabBtnText" class="tab-btn active flex-1 py-2 rounded-lg transition-colors text-center">
-          🧠 Текст & Сценарии (OpenRouter, Gemini, DeepSeek, Qwen)
-        </button>
-        <button type="button" onclick="switchApiTab('audio')" id="tabBtnAudio" class="tab-btn flex-1 py-2 rounded-lg transition-colors text-center text-slate-400 hover:text-white">
-          🎙 Нейроозвучка (ElevenLabs, OpenAI TTS, Edge-TTS)
-        </button>
-        <button type="button" onclick="switchApiTab('video')" id="tabBtnVideo" class="tab-btn flex-1 py-2 rounded-lg transition-colors text-center text-slate-400 hover:text-white">
-          🎬 AI Видео (Fal.ai Kling, Minimax, Luma)
-        </button>
-      </div>
-
-      <!-- 1. ТЕКСТОВЫЕ КЛЮЧИ -->
-      <div id="tabContentText" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- OpenRouter -->
-        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-indigo-500/30">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-indigo-300">OpenRouter (Все топовые модели)</label>
-            <span class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono">openrouter.ai</span>
-          </div>
-          <input type="password" id="keyOpenRouter" placeholder="sk-or-v1-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
-          <div class="space-y-1">
-            <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
-            <select id="modelOpenRouter" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
-              <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet (Лучшая для сторителлинга и сценариев)</option>
-              <option value="openai/gpt-4o">GPT-4o (Флагман OpenAI)</option>
-              <option value="openai/gpt-4o-mini">GPT-4o Mini (Быстрый & экономный)</option>
-              <option value="deepseek/deepseek-r1">DeepSeek R1 (Глубокие рассуждения & виральные хуки)</option>
-              <option value="deepseek/deepseek-chat">DeepSeek V3 (Быстрый)</option>
-              <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B (Очень дешево)</option>
-              <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Google Gemini -->
-        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-cyan-300">Google Gemini</label>
-            <span class="text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full">Бесплатно</span>
-          </div>
-          <input type="password" id="keyGemini" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-cyan-500 outline-none font-mono">
-          <div class="space-y-1">
-            <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
-            <select id="modelGemini" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
-              <option value="gemini-2.5-flash">gemini-2.5-flash (Быстрый & бесплатный)</option>
-              <option value="gemini-2.5-pro">gemini-2.5-pro (Максимальное качество)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- DeepSeek / AI STAR -->
-        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-indigo-300">DeepSeek / AI STAR</label>
-            <span id="starimgBadge" class="hidden text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">AI STAR</span>
-          </div>
-          <input type="password" id="keyDeepseek" oninput="handleDeepseekKeyChange()" placeholder="sk-... или sk-star-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
-          <div class="grid grid-cols-2 gap-2">
-            <input type="text" id="baseDeepseek" placeholder="https://api.deepseek.com/v1" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-300 outline-none font-mono">
-            <select id="modelDeepseek" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
-              <option value="deepseek-v4-pro">deepseek-v4-pro</option>
-              <option value="deepseek-chat">deepseek-chat</option>
-              <option value="deepseek-v4.1-flash">deepseek-v4.1-flash</option>
-              <option value="deepseek-reasoner">deepseek-reasoner (R1)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Qwen -->
-        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-emerald-300">Qwen (DashScope)</label>
-            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">Alibaba</span>
-          </div>
-          <input type="password" id="keyQwen" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
-          <select id="modelQwen" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
-            <option value="qwen-plus">qwen-plus</option>
-            <option value="qwen-max">qwen-max</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- 2. АУДИО КЛЮЧИ -->
-      <div id="tabContentAudio" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- ElevenLabs -->
-        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-amber-500/30">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-amber-300">ElevenLabs (Премиум нейроозвучка)</label>
-            <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono">elevenlabs.io</span>
-          </div>
-          <input type="password" id="keyElevenLabs" placeholder="xi-api-key..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
-          <div class="grid grid-cols-2 gap-2">
-            <select id="voiceElevenLabs" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
-              <option value="pNInz6obpgDQGcFmaJgB">Adam (Мужской глубокий)</option>
-              <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Женский нарратив)</option>
-              <option value="ErXwobaYiN019PkySvjV">Antoni (Энергичный)</option>
-              <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Яркий)</option>
-            </select>
-            <input type="text" id="customVoiceElevenLabs" placeholder="Свой Voice ID" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-300 outline-none font-mono">
-          </div>
-        </div>
-
-        <!-- OpenAI TTS -->
-        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-slate-300">OpenAI Audio TTS</label>
-            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">platform.openai.com</span>
-          </div>
-          <input type="password" id="keyOpenAI" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
-          <select id="voiceOpenAI" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
-            <option value="onyx">Onyx (Глубокий)</option>
-            <option value="nova">Nova (Энергичный)</option>
-            <option value="alloy">Alloy (Универсальный)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- 3. ВИДЕО КЛЮЧИ -->
-      <div id="tabContentVideo" class="hidden space-y-3">
-        <div class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-purple-500/30">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-purple-300">Fal.ai (Kling AI 1.5, Minimax Hailuo, Luma)</label>
-            <span class="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full font-mono">fal.ai</span>
-          </div>
-          <p class="text-xs text-slate-400">Fal.ai — единый баланс для генерации видео через Kling AI и Minimax в формате 9:16.</p>
-          <input type="password" id="keyFal" placeholder="Key ... или fal_..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white outline-none font-mono">
-          <select id="modelFal" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 outline-none">
-            <option value="fal-ai/kling-video/v1/standard/text-to-video">Kling AI 1.5 (Shorts 9:16)</option>
-            <option value="fal-ai/minimax-video">Minimax Hailuo 01</option>
-            <option value="fal-ai/luma-dream-machine">Luma Dream Machine</option>
-          </select>
-        </div>
-      </div>
-
+    <!-- Главное переключение разделов: Радар Ниш vs Студия Shorts -->
+    <div class="grid grid-cols-2 p-1 bg-slate-900 rounded-2xl border border-slate-800 shadow-xl text-xs font-black">
+      <button id="navBtnTrends" onclick="switchMainTab('trends')" class="py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20">
+        <i class="fa-solid fa-fire text-yellow-200"></i>
+        <span>🔥 Радар Ниш & Тренды</span>
+      </button>
+      <button id="navBtnStudio" onclick="switchMainTab('studio')" class="py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-film text-indigo-400"></i>
+        <span>🎬 Студия Shorts</span>
+      </button>
     </div>
 
-    <!-- Основная форма -->
-    <div class="bg-slate-900/90 backdrop-blur p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-5">
-      <div>
-        <label class="block text-sm font-bold text-slate-300 mb-2">Ссылка на YouTube-видео или Shorts</label>
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
-            <i class="fa-brands fa-youtube text-red-500 text-lg"></i>
-          </div>
-          <input type="url" id="videoUrl" placeholder="https://www.youtube.com/shorts/... или watch?v=..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+    <!-- Настройки API Ключей -->
+    <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+      <div class="flex items-center justify-between cursor-pointer" onclick="toggleApiSettings()">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-key text-amber-400 text-xs"></i>
+          <h2 class="text-xs font-bold text-slate-200">API Ключи (OpenRouter, ElevenLabs, Fal.ai)</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="event.stopPropagation(); saveKeys();" class="bg-indigo-600 active:bg-indigo-500 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow transition-transform active:scale-95">
+            💾 Сохранить
+          </button>
+          <i id="settingsChevron" class="fa-solid fa-chevron-down text-slate-400 text-[10px] transition-transform duration-200"></i>
         </div>
       </div>
 
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="w-full md:w-1/3">
-          <label class="block text-sm font-bold text-slate-300 mb-2">Нейросеть для анализа & сценария</label>
-          <select id="aiProvider" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-3.5 px-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer text-sm font-bold">
-            <option value="openrouter">OpenRouter (Все топ модели)</option>
-            <option value="gemini">Google Gemini</option>
-            <option value="deepseek">DeepSeek / AI STAR</option>
-            <option value="qwen">Qwen (DashScope)</option>
-          </select>
-        </div>
-        <div class="w-full md:w-2/3 flex items-end">
-          <button onclick="generateScript()" id="submitBtn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-extrabold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.99] flex items-center justify-center gap-2 text-sm md:text-base">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Сгенерировать контент
+      <div id="settingsContent" class="hidden space-y-3 pt-1">
+        <!-- Табы настроек -->
+        <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button type="button" onclick="switchApiTab('text')" id="tabBtnText" class="tab-btn active flex-1 py-1 rounded-lg transition-colors text-center text-xs">
+            🧠 Текст
+          </button>
+          <button type="button" onclick="switchApiTab('audio')" id="tabBtnAudio" class="tab-btn flex-1 py-1 rounded-lg transition-colors text-center text-slate-400 text-xs">
+            🎙 Озвучка
+          </button>
+          <button type="button" onclick="switchApiTab('video')" id="tabBtnVideo" class="tab-btn flex-1 py-1 rounded-lg transition-colors text-center text-slate-400 text-xs">
+            🎬 Видео
           </button>
         </div>
+
+        <!-- 1. Текст -->
+        <div id="tabContentText" class="space-y-2.5">
+          <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-indigo-500/30">
+            <div class="flex items-center justify-between">
+              <label class="block text-[11px] font-bold text-indigo-300">OpenRouter (Все топ модели)</label>
+              <span class="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-full font-mono">openrouter.ai</span>
+            </div>
+            <input type="password" id="keyOpenRouter" placeholder="sk-or-v1-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-white outline-none font-mono">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-0.5">Модель:</label>
+              <select id="modelOpenRouter" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-xs text-slate-200 outline-none">
+                <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet (Топ сценарии)</option>
+                <option value="openai/gpt-4o">GPT-4o</option>
+                <option value="deepseek/deepseek-r1">DeepSeek R1 (Рассуждения & хуки)</option>
+                <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B</option>
+                <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <div class="flex items-center justify-between">
+              <label class="block text-[11px] font-bold text-slate-300">DeepSeek / AI STAR</label>
+              <span id="starimgBadge" class="hidden text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-mono">AI STAR</span>
+            </div>
+            <input type="password" id="keyDeepseek" oninput="handleDeepseekKeyChange()" placeholder="sk-... или sk-star-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-white outline-none font-mono">
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="baseDeepseek" placeholder="https://api.deepseek.com/v1" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-[11px] text-slate-300 outline-none font-mono">
+              <select id="modelDeepseek" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-xs text-slate-200 outline-none">
+                <option value="deepseek-v4-pro">deepseek-v4-pro</option>
+                <option value="deepseek-chat">deepseek-chat</option>
+                <option value="deepseek-v4.1-flash">deepseek-v4.1-flash</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <div class="flex items-center justify-between">
+              <label class="block text-[11px] font-bold text-cyan-300">Google Gemini (Бесплатно)</label>
+            </div>
+            <input type="password" id="keyGemini" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-white outline-none font-mono">
+            <select id="modelGemini" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-xs text-slate-200 outline-none">
+              <option value="gemini-2.5-flash">gemini-2.5-flash (Быстрый & Рекомендуемый)</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. Аудио -->
+        <div id="tabContentAudio" class="hidden space-y-2.5">
+          <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-amber-500/30">
+            <div class="flex items-center justify-between">
+              <label class="block text-[11px] font-bold text-amber-300">ElevenLabs (Премиум озвучка)</label>
+              <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full font-mono">elevenlabs.io</span>
+            </div>
+            <input type="password" id="keyElevenLabs" placeholder="xi-api-key..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-white outline-none font-mono">
+            <div class="grid grid-cols-2 gap-2">
+              <select id="voiceElevenLabs" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-xs text-slate-200 outline-none">
+                <option value="pNInz6obpgDQGcFmaJgB">Adam (Мужской глубокий)</option>
+                <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Женский нарратив)</option>
+                <option value="ErXwobaYiN019PkySvjV">Antoni (Энергичный)</option>
+                <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Яркий)</option>
+              </select>
+              <input type="text" id="customVoiceElevenLabs" placeholder="Свой Voice ID" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-[11px] text-slate-300 outline-none font-mono">
+            </div>
+          </div>
+
+          <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-bold text-slate-300">OpenAI Audio TTS</label>
+            <input type="password" id="keyOpenAI" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-white outline-none font-mono">
+            <select id="voiceOpenAI" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-xs text-slate-200 outline-none">
+              <option value="onyx">Onyx (Глубокий)</option>
+              <option value="nova">Nova (Энергичный)</option>
+              <option value="alloy">Alloy (Универсальный)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 3. Видео -->
+        <div id="tabContentVideo" class="hidden space-y-2.5">
+          <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-purple-500/30">
+            <div class="flex items-center justify-between">
+              <label class="block text-[11px] font-bold text-purple-300">Fal.ai (Kling AI, Minimax)</label>
+              <span class="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded-full font-mono">fal.ai</span>
+            </div>
+            <input type="password" id="keyFal" placeholder="Key ... или fal_..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-white outline-none font-mono">
+            <select id="modelFal" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-xs text-slate-200 outline-none">
+              <option value="fal-ai/kling-video/v1/standard/text-to-video">Kling AI 1.5 (Shorts 9:16)</option>
+              <option value="fal-ai/minimax-video">Minimax Hailuo 01</option>
+              <option value="fal-ai/luma-dream-machine">Luma Dream Machine</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    
+    <!-- ============================================== -->
+    <!-- 🔥 РАЗДЕЛ 1: AI РАДАР НИШ & ТРЕНДЫ YOUTUBE -->
+    <!-- ============================================== -->
+    <div id="viewTrends" class="space-y-4">
+      
+      <!-- Карточка фильтров и сканера -->
+      <div class="bg-gradient-to-b from-slate-900 to-slate-950 p-4 rounded-2xl border border-amber-500/30 shadow-2xl space-y-3.5">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white text-xs font-black shadow-lg shadow-orange-500/20">
+              <i class="fa-solid fa-fire-flame-curved"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-black text-white flex items-center gap-1.5">
+                AI Радар Ниш & Трендов
+                <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded-full font-mono font-bold">2026</span>
+              </h2>
+              <p class="text-[10px] text-slate-400">Поиск вирусных ниш с высоким RPM, удержанием и готовыми темами</p>
+            </div>
+          </div>
+          <span class="hidden sm:inline-flex text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            ● YouTube Алгоритмы
+          </span>
+        </div>
+
+        <!-- Фильтры сканирования -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">
+              <i class="fa-solid fa-earth-americas text-indigo-400"></i> Рынок & Гео (RPM):
+            </label>
+            <select id="trendRegion" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-2 text-xs text-white outline-none font-semibold">
+              <option value="us_global">🇺🇸 США & Global (RPM $6 - $18)</option>
+              <option value="ru_cis">🇷🇺 СНГ / Россия (Макс. охват)</option>
+              <option value="worldwide">🌐 World Faceless (Без слов / Global)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">
+              <i class="fa-solid fa-layer-group text-amber-400"></i> Категория:
+            </label>
+            <select id="trendCategory" onchange="filterPresetCategory()" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-2 text-xs text-white outline-none font-semibold">
+              <option value="all">⚡ Все вирусные категории</option>
+              <option value="faceless_ai">🤖 Faceless AI (Без лица, AI-арты)</option>
+              <option value="dark_psychology">🧠 Темная психология & Загадки</option>
+              <option value="finance_crypto">💰 Финансы, Крипта & Бизнес</option>
+              <option value="tech_ai">🚀 AI-инструменты & Будущее 2026</option>
+              <option value="lore_cinema">🍿 Фильмы, Аниме & Лор игр</option>
+              <option value="mysteries">🔮 Тайны истории & Необъяснимое</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">
+              <i class="fa-solid fa-bullseye text-emerald-400"></i> Фокус алгоритма:
+            </label>
+            <select id="trendFocus" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-2 text-xs text-white outline-none font-semibold">
+              <option value="viral_hype">🚀 Взрывной хайп недели</option>
+              <option value="high_rpm">💎 Рекордный RPM ($$$)</option>
+              <option value="low_comp">📈 Низкая конкуренция (Новички)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Кнопки запуска сканирования -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="scanTrendsWithAI()" id="btnScanTrends" class="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-400 hover:to-red-400 text-white font-extrabold py-2.5 px-3 rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 text-xs flex items-center justify-center gap-1.5 transition-all">
+            <i class="fa-solid fa-brain"></i> <span>Сканировать с ИИ</span>
+          </button>
+          <button onclick="loadPresetTrends('all')" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold py-2.5 px-3 rounded-xl border border-amber-500/30 active:scale-95 text-xs flex items-center justify-center gap-1.5 transition-all">
+            <i class="fa-solid fa-bolt-lightning text-amber-400"></i> <span>Экспресс ТОП-2026</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Лоадер сканирования трендов -->
+      <div id="trendsLoader" class="hidden flex flex-col items-center py-8 space-y-3 bg-slate-900/60 rounded-2xl border border-amber-500/20">
+        <div class="relative w-12 h-12 flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full border-3 border-amber-500/20 border-t-amber-400 animate-spin"></div>
+          <i class="fa-solid fa-satellite-dish text-amber-400 text-lg animate-pulse"></i>
+        </div>
+        <p id="trendsLoaderText" class="text-amber-300 font-bold text-xs text-center">ИИ анализирует тренды YouTube Shorts...</p>
+        <p class="text-[10px] text-slate-400 text-center max-w-xs">Расчет retention-метрик, CTR хуков и потенциального RPM для алгоритмов 2026</p>
+      </div>
+
+      <!-- Список карточек ниш -->
+      <div id="nichesList" class="space-y-3.5">
+        <!-- Карточки наполняются динамически через JS -->
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 🎬 РАЗДЕЛ 2: СТУДИЯ SHORTS & ГЕНЕРАТОР -->
+    <!-- ============================================== -->
+    <div id="viewStudio" class="hidden space-y-4">
+<!-- Ввод видео -->
+    <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 shadow-xl space-y-2.5">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-xs font-bold text-slate-300">Тема видео ИЛИ ссылка на Shorts</label>
+          <span class="text-[9px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20 font-semibold">1-клик генерация</span>
+        </div>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-red-500 text-xs">
+            <i class="fa-brands fa-youtube"></i>
+          </div>
+          <input type="text" id="videoUrl" placeholder="Вставьте ссылку на Shorts ИЛИ тему/идею..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-2.5 pl-8 pr-3 text-white placeholder-slate-500 text-xs outline-none">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <select id="aiProvider" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-2.5 px-2 text-white text-xs outline-none font-semibold">
+          <option value="openrouter">OpenRouter</option>
+          <option value="gemini">Gemini</option>
+          <option value="deepseek">DeepSeek</option>
+        </select>
+        <button onclick="generateScript()" id="submitBtn" class="col-span-2 bg-indigo-600 active:bg-indigo-500 text-white font-extrabold py-2.5 rounded-xl shadow-lg active:scale-95 text-xs flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Сгенерировать сценарий</span>
+        </button>
       </div>
     </div>
 
     <!-- Загрузка -->
-    <div id="loader" class="hidden flex flex-col items-center py-10 space-y-3 bg-slate-900/50 rounded-2xl border border-slate-800/50">
-      <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-      <p id="loaderText" class="text-indigo-400 font-semibold text-sm">Тянем текст напрямую...</p>
+    <div id="loader" class="hidden flex flex-col items-center py-6 space-y-2 bg-slate-900/50 rounded-2xl border border-slate-800/50">
+      <div class="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <p id="loaderText" class="text-indigo-400 font-semibold text-xs">Тянем текст из видео...</p>
     </div>
 
     <!-- Результат -->
-    <div id="resultContainer" class="hidden space-y-6">
+    <div id="resultContainer" class="hidden space-y-4">
       
       <!-- Заголовок и хук -->
-      <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl relative group">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-black text-amber-400 flex items-center gap-2">
-            <i class="fa-solid fa-fire"></i> Идеи заголовка & Хук (первые 3 сек)
+      <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 shadow-xl space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-black text-amber-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-fire"></i> Заголовки & Хук
           </h3>
-          <button onclick="copyBlock('titleHookBlock')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center gap-1.5">
-            <i class="fa-regular fa-copy"></i> <span>Копировать</span>
-          </button>
+          <div class="flex gap-1.5">
+            <button onclick="shareBlock('titleHookBlock')" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 active:scale-95">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
+            <button onclick="copyBlock('titleHookBlock')" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 active:scale-95">
+              <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
         </div>
         <div id="titleHookBlock">
-          <p id="resTitle" class="font-bold text-slate-100 text-base mb-2"></p>
-          <p id="resHook" class="text-base italic text-slate-300 border-l-4 border-amber-500 pl-4 py-1 bg-amber-500/5 rounded-r-lg"></p>
+          <p id="resTitle" class="font-bold text-slate-100 text-xs mb-1"></p>
+          <p id="resHook" class="text-xs italic text-slate-300 border-l-3 border-amber-500 pl-2.5 py-1 bg-amber-500/5 rounded-r-lg"></p>
         </div>
       </div>
 
       <!-- Сценарий -->
-      <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl relative group">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-black text-indigo-400 flex items-center gap-2">
-            <i class="fa-solid fa-scroll"></i> Сценарий для озвучки
+      <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 shadow-xl space-y-2.5">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-black text-indigo-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-scroll"></i> Сценарий
           </h3>
-          <button onclick="copyBlock('resScript')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center gap-1.5">
-            <i class="fa-regular fa-copy"></i> <span>Копировать</span>
-          </button>
+          <div class="flex gap-1.5">
+            <button onclick="shareBlock('resScript')" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 active:scale-95">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
+            <button onclick="copyBlock('resScript')" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 active:scale-95">
+              <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
         </div>
-        <div id="resScript" class="whitespace-pre-wrap text-slate-200 leading-relaxed text-sm md:text-base font-normal bg-slate-950/60 p-4 rounded-xl border border-slate-800"></div>
+        <div id="resScript" class="whitespace-pre-wrap text-slate-200 text-xs leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800/80 max-h-56 overflow-y-auto"></div>
       </div>
 
-      <!-- Озвучка -->
-      <div class="bg-slate-900 p-5 rounded-2xl border border-indigo-500/30 shadow-xl space-y-4">
+      <!-- БЛОК ОЗВУЧКИ -->
+      <div class="bg-slate-900 p-3.5 rounded-2xl border border-indigo-500/30 shadow-xl space-y-2.5">
         <div class="flex items-center justify-between">
-          <h3 class="text-base font-black text-white flex items-center gap-2">
-            <i class="fa-solid fa-microphone-lines text-indigo-400"></i> Нейроозвучка сценария
+          <h3 class="text-xs font-black text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-microphone text-indigo-400"></i> Нейроозвучка сценария
           </h3>
-          <span class="text-xs text-indigo-300 bg-indigo-500/20 px-2.5 py-1 rounded-full font-semibold">
-            ElevenLabs / OpenAI / Edge-TTS
+          <span class="text-[10px] text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded-full font-semibold">
+            ElevenLabs / OpenAI / Device
           </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <select id="ttsEngine" onchange="updateTtsEngineUI()" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white outline-none">
-            <option value="elevenlabs">ElevenLabs (Премиум HD Голос)</option>
+        <div class="grid grid-cols-2 gap-2">
+          <select id="ttsEngine" onchange="updateTtsEngineUI()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+            <option value="elevenlabs">ElevenLabs (HD Голос)</option>
             <option value="openai">OpenAI Audio TTS</option>
-            <option value="edge">Microsoft Edge-TTS (Бесплатно)</option>
+            <option value="device">Встроенный (Бесплатно)</option>
           </select>
-          <select id="ttsVoiceSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white outline-none">
-            <!-- Динамически -->
+          <select id="ttsVoiceSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+            <!-- Динамические голоса -->
           </select>
         </div>
 
-        <button onclick="generateSpeech()" id="btnVoice" class="w-full bg-slate-800 hover:bg-slate-700 border border-indigo-500/30 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-sm">
-          <i class="fa-solid fa-volume-high text-indigo-400"></i>
-          <span>🎙 Сгенерировать голос сценария</span>
+        <button onclick="generateSpeech()" id="btnGenerateSpeech" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 active:from-indigo-500 active:to-purple-500 text-white font-bold py-2.5 rounded-xl shadow-lg active:scale-95 text-xs flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-volume-high"></i> <span>Сгенерировать голос</span>
         </button>
 
         <audio id="ttsAudioPlayer" class="hidden"></audio>
@@ -349,46 +440,48 @@
       <!-- ============================================== -->
       <!-- 🎬 СТУДИЯ МОНТАЖА CAPCUT (ИНТЕРАКТИВНЫЙ ХОЛСТ 9:16) -->
       <!-- ============================================== -->
-      <div class="bg-gradient-to-b from-indigo-950/60 via-slate-900 to-slate-950 p-6 rounded-2xl border-2 border-indigo-500/40 shadow-2xl space-y-5">
+      <div class="bg-gradient-to-b from-indigo-950/60 via-slate-900 to-slate-950 p-4 rounded-2xl border-2 border-indigo-500/40 shadow-2xl space-y-4">
         
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-500 to-indigo-500 flex items-center justify-center text-white text-sm font-black shadow-md">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500 to-indigo-500 flex items-center justify-center text-white text-xs font-black shadow-md">
               <i class="fa-solid fa-film"></i>
             </div>
             <div>
-              <h3 class="text-base font-black text-white flex items-center gap-2">
+              <h3 class="text-sm font-black text-white flex items-center gap-1.5">
                 CapCut Shorts Studio (9:16)
               </h3>
-              <p class="text-xs text-slate-400">Виральные караоке-субтитры, зум, эмодзи и фоновая музыка</p>
+              <p class="text-[10px] text-slate-400">Виральные караоке-субтитры, зум, эмодзи и музыка</p>
             </div>
           </div>
-          <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
             Hormozi & MrBeast
           </span>
         </div>
 
         <!-- 9:16 ПРЕВЬЮ ПЛЕЕР (ХОЛСТ CAPCUT) -->
-        <div class="relative max-w-[280px] sm:max-w-[320px] mx-auto aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border-2 border-indigo-500/50 bg-black flex flex-col justify-between p-4 select-none">
+        <div class="relative max-w-[270px] sm:max-w-[300px] mx-auto aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border-2 border-indigo-500/50 bg-black flex flex-col justify-between p-4 select-none">
           
-          <!-- Фоновый слой -->
+          <!-- Фоновый слой (Анимированный градиент или видео) -->
           <div id="capcutBgLayer" class="absolute inset-0 bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-900 punch-zoom transition-transform duration-700"></div>
           
-          <!-- Верхний бейдж -->
-          <div class="relative z-10 flex items-center justify-between text-xs text-slate-300">
+          <!-- Верхний бейдж канала / Shorts -->
+          <div class="relative z-10 flex items-center justify-between text-[11px] text-slate-300">
             <span class="bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 font-bold flex items-center gap-1 text-white">
-              <i class="fa-solid fa-play text-red-500 text-[10px]"></i> Shorts
+              <i class="fa-solid fa-play text-red-500 text-[9px]"></i> Shorts
             </span>
-            <span class="bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 font-mono text-xs text-indigo-300">
+            <span class="bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 font-mono text-[10px] text-indigo-300">
               @krshorts
             </span>
           </div>
 
           <!-- СРЕДНИЙ СЛОЙ: КАРАОКЕ-СУБТИТРЫ С ПОДСВЕТКОЙ СЛОВ -->
           <div id="capcutCaptionContainer" class="relative z-10 my-auto text-center px-2 py-4">
-            <div id="capcutEmojiPopup" class="text-4xl mb-2 transition-transform duration-200 transform scale-0">🔥</div>
+            <!-- Всплывающий эмодзи -->
+            <div id="capcutEmojiPopup" class="text-3xl mb-2 transition-transform duration-200 transform scale-0">🔥</div>
             
-            <div id="capcutWordsBox" class="flex flex-wrap justify-center items-center gap-1.5 text-2xl font-black leading-snug">
+            <!-- Слова активной фразы -->
+            <div id="capcutWordsBox" class="flex flex-wrap justify-center items-center gap-1.5 text-xl font-black leading-snug">
               <span class="word-hormozi">НАЖМИТЕ</span>
               <span class="word-hormozi active" style="color: #FFDE59;">PLAY</span>
               <span class="word-hormozi">ДЛЯ</span>
@@ -396,12 +489,12 @@
             </div>
           </div>
 
-          <!-- Нижний прогресс-бар -->
+          <!-- Нижний прогресс-бар в стиле TikTok/Shorts -->
           <div class="relative z-10 space-y-2">
-            <div class="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
+            <div class="w-full bg-white/20 h-1 rounded-full overflow-hidden">
               <div id="capcutProgressBar" class="bg-gradient-to-r from-amber-400 to-red-500 h-full w-0 transition-all duration-100"></div>
             </div>
-            <div class="flex items-center justify-between text-xs text-slate-400">
+            <div class="flex items-center justify-between text-[10px] text-slate-400">
               <span id="capcutTimeCurrent">0:00</span>
               <span id="capcutTimeTotal">0:00</span>
             </div>
@@ -411,148 +504,676 @@
 
         <!-- ПАНЕЛЬ УПРАВЛЕНИЯ ПЛЕЕРОМ -->
         <div class="flex items-center justify-center gap-3">
-          <button onclick="toggleCapCutPlay()" id="btnCapCutPlay" class="w-14 h-14 rounded-full bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white flex items-center justify-center text-xl shadow-lg active:scale-95 transition-transform">
+          <button onclick="toggleCapCutPlay()" id="btnCapCutPlay" class="w-12 h-12 rounded-full bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white flex items-center justify-center text-lg shadow-lg active:scale-95 transition-transform">
             <i class="fa-solid fa-play ml-0.5" id="capcutPlayIcon"></i>
           </button>
-          <button onclick="resetCapCutPlay()" class="w-11 h-11 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-sm active:scale-95 border border-slate-700">
+          <button onclick="resetCapCutPlay()" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs active:scale-95 border border-slate-700">
             <i class="fa-solid fa-rotate-left"></i>
           </button>
         </div>
 
         <!-- НАСТРОЙКИ МОНТАЖА CAPCUT -->
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3.5 text-xs">
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-3 text-xs">
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <!-- 1. Стиль субтитров & Цвет -->
+          <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-xs text-slate-400 mb-1 font-bold">Стиль караоке-субтитров:</label>
-              <select id="capcutStyleSelect" onchange="updateCapCutStyle()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none">
-                <option value="hormozi">Hormozi (Желтый акцент, черная обводка)</option>
-                <option value="mrbeast">MrBeast (Punchy Cyan с тенью)</option>
-                <option value="cyber">Cyber Neon (Неоновое свечение)</option>
+              <label class="block text-[10px] text-slate-400 mb-1 font-bold">Стиль караоке:</label>
+              <select id="capcutStyleSelect" onchange="updateCapCutStyle()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+                <option value="hormozi">Hormozi (Желтый акцент)</option>
+                <option value="mrbeast">MrBeast (Punchy Cyan)</option>
+                <option value="cyber">Cyber Neon (Неоновый)</option>
                 <option value="minimal">Clean Minimal (Стильный)</option>
               </select>
             </div>
             <div>
-              <label class="block text-xs text-slate-400 mb-1 font-bold">Цвет активного слова:</label>
-              <select id="capcutColorSelect" onchange="updateCapCutStyle()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none">
-                <option value="#FFDE59">🟡 Hormozi Yellow (#FFDE59)</option>
-                <option value="#00FF66">🟢 Neon Green (#00FF66)</option>
-                <option value="#00F0FF">🔵 Cyan Punch (#00F0FF)</option>
-                <option value="#FF2E93">🔴 Hot Pink (#FF2E93)</option>
+              <label class="block text-[10px] text-slate-400 mb-1 font-bold">Цвет активного слова:</label>
+              <select id="capcutColorSelect" onchange="updateCapCutStyle()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+                <option value="#FFDE59">🟡 Hormozi Yellow</option>
+                <option value="#00FF66">🟢 Neon Green</option>
+                <option value="#00F0FF">🔵 Cyan Punch</option>
+                <option value="#FF2E93">🔴 Hot Pink</option>
               </select>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <!-- 2. Фоновая музыка (BGM) & Эффекты -->
+          <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-xs text-slate-400 mb-1 font-bold">Фоновая музыка (BGM):</label>
-              <select id="capcutBgmSelect" onchange="updateBgmTrack()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none">
+              <label class="block text-[10px] text-slate-400 mb-1 font-bold">Фоновая музыка (BGM):</label>
+              <select id="capcutBgmSelect" onchange="updateBgmTrack()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
                 <option value="lofi">🎧 Lo-Fi Chill Beat</option>
-                <option value="phonk">⚡ Phonk Drive Beat</option>
+                <option value="phonk">⚡ Phonk Motivation</option>
                 <option value="synth">🌌 Cyber Synthwave</option>
                 <option value="none">🔇 Без музыки</option>
               </select>
             </div>
             <div>
-              <label class="block text-xs text-slate-400 mb-1 font-bold">Громкость музыки с авто-дакингом:</label>
-              <input type="range" id="capcutBgmVolume" min="0" max="100" value="25" oninput="updateBgmVolume()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 mt-3">
+              <label class="block text-[10px] text-slate-400 mb-1 font-bold">Громкость музыки:</label>
+              <input type="range" id="capcutBgmVolume" min="0" max="100" value="25" oninput="updateBgmVolume()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 mt-2">
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-900">
-            <label class="flex items-center gap-2 cursor-pointer">
+          <!-- 3. Тумблеры: Punch Zoom & Эмодзи -->
+          <div class="flex items-center justify-between pt-1 border-t border-slate-900">
+            <label class="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" id="capcutPunchZoom" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
-              <span class="text-xs text-slate-300 font-semibold">Наезд камеры (Punch Zoom)</span>
+              <span class="text-[11px] text-slate-300 font-semibold">Наезд камеры (Punch Zoom)</span>
             </label>
-            <label class="flex items-center gap-2 cursor-pointer">
+            <label class="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" id="capcutEmojiToggle" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 accent-indigo-600">
-              <span class="text-xs text-slate-300 font-semibold">Авто-эмодзи (🔥 💰 🚀 💡)</span>
+              <span class="text-[11px] text-slate-300 font-semibold">Авто-эмодзи (🔥 💰 🚀)</span>
             </label>
           </div>
 
         </div>
 
-        <!-- КНОПКА ЭКСПОРТА -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-          <button onclick="renderVideo()" id="btnVideo" class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-emerald-600/25 active:scale-95 flex items-center justify-center gap-2 text-sm">
-            <i class="fa-solid fa-clapperboard"></i>
-            <span>Собрать готовое видео Shorts (9:16)</span>
+        <!-- КНОПКА ЭКСПОРТА ГОТОВОГО ВИДЕО -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="exportCapCutVideo()" id="btnExportCapCut" class="bg-gradient-to-r from-emerald-600 to-teal-600 active:from-emerald-500 active:to-teal-500 text-white font-extrabold py-3 px-3 rounded-xl shadow-lg active:scale-95 text-xs flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-download"></i> <span>Скачать видео (9:16)</span>
           </button>
+          <button onclick="copyAiVideoPrompt()" class="bg-slate-800 active:bg-slate-700 border border-purple-500/30 text-purple-300 font-bold py-3 px-3 rounded-xl active:scale-95 text-xs flex items-center justify-center gap-1.5">
+            <i class="fa-regular fa-copy"></i> <span>Промпт 9:16 (Kling)</span>
+          </button>
+        </div>
 
-          <button onclick="copyAiVideoPrompt()" class="bg-slate-800 hover:bg-slate-700 border border-purple-500/30 text-purple-300 font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-xs">
+      </div>
+
+      <!-- Описание и теги -->
+      <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 shadow-xl space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-hashtag"></i> SEO & Теги
+          </h3>
+          <button onclick="copyBlock('seoBlock')" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 active:scale-95">
             <i class="fa-regular fa-copy"></i>
-            <span>Скопировать 9:16 промпт для Kling/Runway</span>
           </button>
         </div>
-
-        <!-- Видеоплеер результата -->
-        <div id="videoPlayerSection" class="hidden bg-slate-950/80 p-6 rounded-xl border border-slate-800 space-y-4 text-center">
-          <div class="flex items-center justify-between text-xs text-slate-300 pb-2 border-b border-slate-800">
-            <span class="font-bold flex items-center gap-1.5 text-amber-400">
-              <i class="fa-solid fa-sparkles"></i> Готовое видео Shorts (9:16)
-            </span>
-            <a id="videoDownloadBtn" href="#" download="shorts.mp4" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-all shadow-md flex items-center gap-1.5">
-              <i class="fa-solid fa-download"></i> Скачать MP4
-            </a>
+        <div id="seoBlock" class="space-y-2">
+          <p id="resSEO" class="text-xs text-slate-300 whitespace-pre-wrap bg-slate-950 p-2.5 rounded-xl border border-slate-800"></p>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <p id="resTags" class="text-[11px] text-indigo-300 font-mono break-words"></p>
           </div>
-          <div class="max-w-[280px] sm:max-w-[320px] mx-auto rounded-2xl overflow-hidden shadow-2xl border-2 border-indigo-500/40 bg-black aspect-[9/16]">
-            <video id="videoPlayer" controls playsinline class="w-full h-full object-cover"></video>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Сетка описания и B-roll -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-bold text-emerald-400 flex items-center gap-2 text-sm md:text-base">
-              <i class="fa-solid fa-hashtag"></i> Описание & Теги
-            </h3>
-            <button onclick="copyBlock('seoBlock')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors flex items-center gap-1">
-              <i class="fa-regular fa-copy"></i> <span>Копировать</span>
-            </button>
-          </div>
-          <div id="seoBlock" class="space-y-3">
-            <p id="resSEO" class="text-xs md:text-sm text-slate-300 whitespace-pre-wrap bg-slate-950/60 p-3 rounded-xl border border-slate-800"></p>
-            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
-              <p id="resTags" class="text-xs text-indigo-300 font-mono break-words"></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-bold text-purple-400 flex items-center gap-2 text-sm md:text-base">
-              <i class="fa-solid fa-film"></i> B-Roll (Раскадровка & Монтаж)
-            </h3>
-            <button onclick="copyBlock('resVisuals')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors flex items-center gap-1">
-              <i class="fa-regular fa-copy"></i> <span>Копировать</span>
-            </button>
-          </div>
-          <p id="resVisuals" class="text-xs md:text-sm text-slate-300 whitespace-pre-wrap bg-slate-950/60 p-3 rounded-xl border border-slate-800 leading-relaxed"></p>
         </div>
       </div>
 
+      <!-- B-Roll -->
+      <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 shadow-xl space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-purple-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-film"></i> B-Roll (Раскадровка)
+          </h3>
+          <button onclick="copyBlock('resVisuals')" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 active:scale-95">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </div>
+        <p id="resVisuals" class="text-xs text-slate-300 whitespace-pre-wrap bg-slate-950 p-2.5 rounded-xl border border-slate-800 leading-relaxed"></p>
+      </div>
+
+    </div>
     </div>
 
   </div>
 
   <script>
-    const isLocalServer = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    let currentAudioId = null;
-    let currentAudioUrl = null;
+    const isAndroid = typeof AndroidBridge !== 'undefined';
+
+    // ==============================================
+    // 🔥 ДАННЫЕ И ФУНКЦИИ РАДАРА НИШ & ТРЕНДОВ YOUTUBE
+    // ==============================================
+    const PRESET_NICHES = [
+      {
+        niche_name: "Парадоксы Истории & AI Реконструкции",
+        icon: "🏛️",
+        category: "faceless_ai",
+        category_title: "Faceless AI / Тайны истории",
+        target_audience: "18-45 лет, любители тайн, глобальная аудитория",
+        virality_score: "9.9",
+        estimated_rpm: "$8.50 - $16.00",
+        competition: "Низкая",
+        retention_rate: "88%",
+        retention_hack: "Открытая петля в первые 2 секунды: гиперреалистичный AI-кадр с фактом, который противоречит школьным учебникам.",
+        viral_topics: [
+          {
+            topic: "Секретная находка подо льдами Антарктиды",
+            hook: "То, что спутник NASA зафиксировал подо льдом Антарктиды вчера, удалили из сети через 40 минут..."
+          },
+          {
+            topic: "Что скрывали строители пирамиды Хеопса в тайной камере",
+            hook: "Вчера микро-сканер проник в неисследованный туннель пирамиды, и вот что появилось на экранах..."
+          },
+          {
+            topic: "Запрещенный эксперимент со сном 1971 года",
+            hook: "На пятый день без сна испытуемые начали говорить с теми, кого камера в комнате не фиксировала..."
+          }
+        ]
+      },
+      {
+        niche_name: "Темная Психология & Скрытые Манипуляции",
+        icon: "🧠",
+        category: "dark_psychology",
+        category_title: "Психология & Отношения",
+        target_audience: "16-35 лет, саморазвитие, социальная динамика",
+        virality_score: "9.8",
+        estimated_rpm: "$6.00 - $11.50",
+        competition: "Средняя",
+        retention_rate: "92%",
+        retention_hack: "Обращение на «Ты» и скрытый триггер паранойи: «Если человек делает это прямо сейчас — он тайно манипулирует тобой».",
+        viral_topics: [
+          {
+            topic: "3 микрожеста, которые выдают скрытую симпатию",
+            hook: "Обрати внимание на то, куда направлен его корпус, когда вся компания начинает смеяться..."
+          },
+          {
+            topic: "Эффект Бенджамина Франклина: влюбить за 1 просьбу",
+            hook: "Попроси человека сделать для тебя эту крошечную вещь, и его подсознание решит, что ты ему безумно нравишься..."
+          },
+          {
+            topic: "Как распознать скрытого нарцисса по одной фразе",
+            hook: "Они всегда говорят эти 4 слова, когда чувствуют, что теряют контроль над тобой..."
+          }
+        ]
+      },
+      {
+        niche_name: "Секреты Денег & Лазейки Миллиардеров",
+        icon: "💰",
+        category: "finance_crypto",
+        category_title: "Финансы & Пассивный доход",
+        target_audience: "20-45 лет, предприниматели, инвесторы, зумеры",
+        virality_score: "9.6",
+        estimated_rpm: "$12.00 - $24.00",
+        competition: "Низкая",
+        retention_rate: "85%",
+        retention_hack: "Разрушение стереотипа: «Копить деньги на вкладе — это гарантированная бедность, вот что делают богатые».",
+        viral_topics: [
+          {
+            topic: "Схема Buy, Borrow, Die: как богатые не платят налоги",
+            hook: "Самые богатые люди мира никогда не продают акции и не платят подоходный налог. Вот их легальная лазейка..."
+          },
+          {
+            topic: "3 пассивных источника дохода с ИИ в 2026 году",
+            hook: "Этот 19-летний парень делает $5000 в месяц на авто-сервисах, не написав ни строчки кода..."
+          },
+          {
+            topic: "Кредитная ловушка банков, о которой молчат 95% людей",
+            hook: "Если ты гасишь кредитную карту минимальным платежом — банк незаметно забирает треть твоей зарплаты..."
+          }
+        ]
+      },
+      {
+        niche_name: "Прорывные AI-Инструменты 2026",
+        icon: "🚀",
+        category: "tech_ai",
+        category_title: "AI Технологии & Будущее",
+        target_audience: "18-40 лет, креаторы, фрилансеры, разработчики",
+        virality_score: "9.8",
+        estimated_rpm: "$8.00 - $15.50",
+        competition: "Низкая",
+        retention_rate: "90%",
+        retention_hack: "Демонстрация магии за 1.5 секунды: готовый фотореалистичный результат с призывом «забирай пока бесплатно».",
+        viral_topics: [
+          {
+            topic: "Бесплатная нейросеть, заменившая Midjourney и Runway",
+            hook: "Забудьте о платных подписках — эта новая открытая модель генерирует 8K видео по текстовому описанию за секунды..."
+          },
+          {
+            topic: "Клонирование своего голоса и внешности в 1 клик",
+            hook: "Человек, которого вы сейчас видите на экране, никогда не существовал — он создан за 2 минуты в телефоне..."
+          },
+          {
+            topic: "Секретный промпт для ChatGPT, который решает любую задачу",
+            hook: "Добавь эти 7 слов в конец любого запроса — и нейросеть перестанет лить воду и выдаст идеальный результат..."
+          }
+        ]
+      },
+      {
+        niche_name: "Кино-Тайны & Скрытые Детали в Фильмах",
+        icon: "🍿",
+        category: "lore_cinema",
+        category_title: "Кино & Скрытые пасхалки",
+        target_audience: "14-35 лет, киноманы, фанаты Marvel, Гарри Поттера",
+        virality_score: "9.7",
+        estimated_rpm: "$5.50 - $10.50",
+        competition: "Средняя",
+        retention_rate: "89%",
+        retention_hack: "Визуальный стоп-кадр со стрелкой: «Вы пересматривали этот шедевр 5 раз, но не заметили то, что режиссер оставил в тени».",
+        viral_topics: [
+          {
+            topic: "Скрытый смысл концовки фильма «Начало» Нолана",
+            hook: "Волчок вообще не был тотемом Кобба. Вот настоящая деталь, подтверждающая, спал он или нет..."
+          },
+          {
+            topic: "Жуткая деталь в «Гарри Поттере», понятная только взрослым",
+            hook: "Посмотрите на движение палочки Снейпа в дуэли с Макгонагалл — он целился совсем не в нее..."
+          },
+          {
+            topic: "Почему Джокер в «Темном рыцаре» постоянно облизывал губы",
+            hook: "Это не было импровизацией Хита Леджера — вот медицинская причина, стоявшая за этим жестом..."
+          }
+        ]
+      },
+      {
+        niche_name: "Забытые Научные Феномены & Космос",
+        icon: "🔮",
+        category: "mysteries",
+        category_title: "Научные феномены & Космос",
+        target_audience: "16-55 лет, широкая эрудированная аудитория",
+        virality_score: "9.7",
+        estimated_rpm: "$7.50 - $14.00",
+        competition: "Низкая",
+        retention_rate: "87%",
+        retention_hack: "Звуковой саспенс и нарастание драматизма с обещанием ответа на 45-й секунде.",
+        viral_topics: [
+          {
+            topic: "Сигнал «Wow!»: что на самом деле ответили из космоса",
+            hook: "В 1977 году обсерватория зафиксировала 72-секундный сигнал. Спустя 48 лет астрофизики расшифровали его источник..."
+          },
+          {
+            topic: "Что произошло на дне Кольской сверхглубокой скважины",
+            hook: "Когда датчики достигли 12 000 метров, температура резко подскочила до аномальных значений, и приборы зафиксировали звук..."
+          },
+          {
+            topic: "Парадокс Ферми: жуткая теория «Темного леса»",
+            hook: "Знаете, почему Вселенная молчит? Физики считают, что цивилизации намеренно скрываются от чего-то страшного..."
+          }
+        ]
+      }
+    ];
+
+    let currentNichesList = [...PRESET_NICHES];
+    let lastTrendHook = null;
+
+    function switchMainTab(tab) {
+      const trendsView = document.getElementById('viewTrends');
+      const studioView = document.getElementById('viewStudio');
+      const btnTrends = document.getElementById('navBtnTrends');
+      const btnStudio = document.getElementById('navBtnStudio');
+
+      if (tab === 'trends') {
+        trendsView.classList.remove('hidden');
+        studioView.classList.add('hidden');
+        btnTrends.className = "py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20";
+        btnStudio.className = "py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white";
+      } else {
+        trendsView.classList.add('hidden');
+        studioView.classList.remove('hidden');
+        btnStudio.className = "py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20";
+        btnTrends.className = "py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white";
+      }
+    }
+
+    function filterPresetCategory() {
+      const cat = document.getElementById('trendCategory').value;
+      loadPresetTrends(cat);
+    }
+
+    function loadPresetTrends(categoryFilter = 'all') {
+      if (categoryFilter === 'all') {
+        currentNichesList = [...PRESET_NICHES];
+      } else {
+        currentNichesList = PRESET_NICHES.filter(n => n.category === categoryFilter);
+        if (currentNichesList.length === 0) currentNichesList = [...PRESET_NICHES];
+      }
+      renderNiches(currentNichesList);
+    }
+
+    function renderNiches(niches) {
+      const container = document.getElementById('nichesList');
+      if (!container) return;
+      currentNichesList = niches;
+      container.innerHTML = '';
+
+      niches.forEach((niche, nIdx) => {
+        let compBadgeClass = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        if ((niche.competition || '').toLowerCase().includes('средн')) {
+          compBadgeClass = 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        } else if ((niche.competition || '').toLowerCase().includes('высок')) {
+          compBadgeClass = 'bg-rose-500/20 text-rose-300 border border-rose-500/30';
+        }
+
+        const topicsHtml = (niche.viral_topics || []).map((t, tIdx) => `
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+            <div class="space-y-1">
+              <p class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                <i class="fa-solid fa-play text-[9px] text-indigo-400"></i> ${t.topic}
+              </p>
+              <p class="text-[11px] text-slate-300 italic border-l-2 border-amber-400/80 pl-2 bg-amber-400/5 py-1 rounded-r">
+                <span class="text-amber-400 font-bold not-italic text-[9px]">Хук 3 сек:</span> «${t.hook}»
+              </p>
+            </div>
+            <div class="flex justify-end pt-1">
+              <button onclick="triggerTrendByIndex(${nIdx}, ${tIdx})" class="bg-indigo-600 active:bg-indigo-500 text-white font-extrabold text-[11px] py-1.5 px-3 rounded-lg shadow-md active:scale-95 flex items-center gap-1.5 transition-all">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                <span>⚡ Создать сценарий в 1 клик</span>
+              </button>
+            </div>
+          </div>
+        `).join('');
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl space-y-3 hover:border-amber-500/40 transition-colors";
+        card.innerHTML = `
+          <!-- Верх ниши: Заголовок + Бейджи -->
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-base">${niche.icon || '🔥'}</span>
+                <h3 class="text-sm font-black text-white">${niche.niche_name}</h3>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-0.5">${niche.category_title || niche.category} • ${niche.target_audience || 'Широкая аудитория'}</p>
+            </div>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${compBadgeClass}">
+              ${niche.competition} конкуренция
+            </span>
+          </div>
+
+          <!-- Метрики ниши: Виральность, RPM, Retention -->
+          <div class="grid grid-cols-3 gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
+            <div>
+              <p class="text-[9px] text-slate-400">🔥 Виральность</p>
+              <p class="text-xs font-black text-amber-400">${niche.virality_score}/10</p>
+            </div>
+            <div class="border-x border-slate-800">
+              <p class="text-[9px] text-slate-400">💵 Оценочный RPM</p>
+              <p class="text-xs font-black text-emerald-400">${niche.estimated_rpm}</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-slate-400">⏱️ Удержание</p>
+              <p class="text-xs font-black text-cyan-400">${niche.retention_rate || '85%+'}</p>
+            </div>
+          </div>
+
+          <!-- Retention Hack -->
+          <div class="bg-amber-500/5 border border-amber-500/20 rounded-xl p-2.5 text-xs">
+            <div class="flex items-center gap-1.5 text-amber-300 font-bold text-[10px] uppercase mb-0.5">
+              <i class="fa-solid fa-lightbulb"></i> Секрет удержания (Retention Hack)
+            </div>
+            <p class="text-slate-300 text-[11px] leading-relaxed">${niche.retention_hack}</p>
+          </div>
+
+          <!-- Виральные темы с хуками -->
+          <div class="space-y-2">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🎯 Готовые темы для видео (с хуками):</p>
+            ${topicsHtml}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function triggerTrendByIndex(nIdx, tIdx) {
+      const niche = currentNichesList[nIdx];
+      if (!niche || !niche.viral_topics || !niche.viral_topics[tIdx]) return;
+      const tObj = niche.viral_topics[tIdx];
+      useTrendTopic(tObj.topic, tObj.hook);
+    }
+
+    function useTrendTopic(topic, hook) {
+      lastTrendHook = hook;
+      switchMainTab('studio');
+      const input = document.getElementById('videoUrl');
+      if (input) input.value = topic;
+      if (isAndroid) AndroidBridge.showToast("🚀 Создаем вирусный сценарий...");
+      generateScript(topic, hook);
+    }
+
+    async function scanTrendsWithAI() {
+      const provider = document.getElementById('aiProvider').value;
+      const keys = {
+        openrouter: document.getElementById('keyOpenRouter').value.trim(),
+        gemini: document.getElementById('keyGemini').value.trim(),
+        deepseek: document.getElementById('keyDeepseek').value.trim()
+      };
+
+      const region = document.getElementById('trendRegion').value;
+      const category = document.getElementById('trendCategory').value;
+      const focus = document.getElementById('trendFocus').value;
+
+      const regionNames = {
+        'us_global': 'США и Global (High RPM $6-$18)',
+        'ru_cis': 'СНГ и Россия (Максимальный охват)',
+        'worldwide': 'Worldwide Faceless (Мультиязычный без слов)'
+      };
+      const categoryNames = {
+        'all': 'Все горячие ниши',
+        'faceless_ai': 'Faceless AI (Генерации Midjourney/Runway, без лица)',
+        'dark_psychology': 'Темная психология, скрытые факты и манипуляции',
+        'finance_crypto': 'Финансы, Криптовалюты, Деньги и Пассивный доход',
+        'tech_ai': 'AI-инструменты, Будущее и Прорывные технологии 2026',
+        'lore_cinema': 'Фильмы, Сериалы, Аниме и Лор популярных игр',
+        'mysteries': 'Загадки истории, Секретные эксперименты и Тайны'
+      };
+      const focusNames = {
+        'viral_hype': 'Взрывной хайп недели',
+        'high_rpm': 'Рекордный RPM монетизации',
+        'low_comp': 'Низкая конкуренция (легкий старт с нуля)'
+      };
+
+      if (!keys[provider]) {
+        if (isAndroid) AndroidBridge.showToast(`💡 Загружаем топ-ниши (для кастомного ИИ-анализа укажите ключ ${provider.toUpperCase()})`);
+        loadPresetTrends(category);
+        return;
+      }
+
+      const loader = document.getElementById('trendsLoader');
+      const loaderText = document.getElementById('trendsLoaderText');
+      const btn = document.getElementById('btnScanTrends');
+      const container = document.getElementById('nichesList');
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+      loader.classList.remove('hidden');
+      container.innerHTML = '';
+
+      try {
+        loaderText.innerText = `🔍 ИИ (${provider.toUpperCase()}) сканирует тренды YouTube 2026...`;
+
+        const prompt = `Ты ведущий мировой аналитик алгоритмов YouTube Shorts.
+Проанализируй актуальные вирусные тренды по параметрам:
+- Регион/Рынок: ${regionNames[region] || region}
+- Категория: ${categoryNames[category] || category}
+- Фокус: ${focusNames[focus] || focus}
+
+Выдай 4 самые взрывные ниши с высоким потенциалом просмотров и монетизации.
+Формат ответа СТРОГО в виде валидного JSON массива без markdown блоков, текста до или после:
+[
+  {
+    "niche_name": "Название ниши",
+    "icon": "🧠",
+    "category": "${category}",
+    "category_title": "Название категории",
+    "target_audience": "Целевая аудитория",
+    "virality_score": "9.8",
+    "estimated_rpm": "$8.50 - $15.00",
+    "competition": "Низкая",
+    "retention_rate": "87%",
+    "retention_hack": "Точный психологический прием удержания внимания (почему зрители не свайпают)",
+    "viral_topics": [
+      {
+        "topic": "Виральная тема 1",
+        "hook": "Текст шок-хука первых 3 секунд"
+      },
+      {
+        "topic": "Виральная тема 2",
+        "hook": "Текст шок-хука первых 3 секунд"
+      },
+      {
+        "topic": "Виральная тема 3",
+        "hook": "Текст шок-хука первых 3 секунд"
+      }
+    ]
+  }
+]`;
+
+        let endpoint, headers, body;
+
+        if (provider === 'openrouter') {
+          const model = document.getElementById('modelOpenRouter').value || 'anthropic/claude-3.5-sonnet';
+          endpoint = "https://openrouter.ai/api/v1/chat/completions";
+          headers = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${keys.openrouter}`,
+            "HTTP-Referer": "https://autoscriptor.app",
+            "X-Title": "AutoScriptor"
+          };
+          body = {
+            model: model,
+            messages: [
+              { role: "system", content: "You are an expert YouTube algorithm and trend analyst. Return valid JSON array only." },
+              { role: "user", content: prompt }
+            ],
+            response_format: { type: "json_object" }
+          };
+        } else if (provider === 'gemini') {
+          let geminiModel = document.getElementById('modelGemini').value || 'gemini-2.5-flash';
+          endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${keys.gemini}`;
+          headers = { "Content-Type": "application/json" };
+          body = {
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+          };
+        } else {
+          let baseUrl = document.getElementById('baseDeepseek').value.trim() || 'https://api.deepseek.com/v1';
+          baseUrl = baseUrl.replace(/\/+$/, '');
+          endpoint = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
+          const model = document.getElementById('modelDeepseek').value || 'deepseek-v4-pro';
+          headers = { "Content-Type": "application/json", "Authorization": `Bearer ${keys.deepseek}` };
+          body = {
+            model: model,
+            messages: [
+              { role: "system", content: "You are an expert YouTube algorithm and trend analyst. Return valid JSON array only." },
+              { role: "user", content: prompt }
+            ],
+            response_format: { type: "json_object" }
+          };
+        }
+
+        const response = await executeRequest(endpoint, 'POST', headers, body);
+        const rawData = await response.json();
+        if (!response.ok) throw new Error(rawData.error?.message || "Ошибка API трендов");
+
+        let contentStr = provider === 'gemini'
+          ? rawData.candidates?.[0]?.content?.parts?.[0]?.text
+          : rawData.choices?.[0]?.message?.content;
+
+        if (!contentStr) throw new Error("Пустой ответ от нейросети");
+        let cleanStr = contentStr.trim();
+        const match = cleanStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (match) cleanStr = match[1].trim();
+
+        let niches = JSON.parse(cleanStr);
+        if (!Array.isArray(niches) && niches.niches) niches = niches.niches;
+
+        renderNiches(niches);
+        if (isAndroid) AndroidBridge.showToast(`🔥 Найдено ${niches.length} трендовых ниш!`);
+
+      } catch (err) {
+        console.error(err);
+        if (isAndroid) AndroidBridge.showToast("⚠️ Ошибка ИИ, загружаем каталог ниш...");
+        loadPresetTrends(category);
+      } finally {
+        loader.classList.add('hidden');
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+      }
+    }
+
+    async function callAIForTopic(provider, key, topic, hook) {
+      const prompt = `Ты ведущий продюсер вирусных YouTube Shorts и Reels с миллионными просмотрами.
+Создай взрывной, динамичный сценарий для вертикального видео 9:16 на тему: "${topic}".
+${hook ? `Обязательно используй или сделай еще мощнее этот 3-секундный хук: "${hook}"` : ''}
+
+Структура сценария:
+1. ХУК (0-3 сек): Шок, неожиданный факт или парадоксальный вопрос, заставляющий остановиться.
+2. ИНТРИГА (3-15 сек): Развитие мысли без лишних вводных слов, быстрый темп, удержание внимания.
+3. ПИК / ТВЕРДЫЕ ФАКТЫ (15-40 сек): Раскрытие интриги с яркими деталями, психологическими паттернами или шокирующими подробностями.
+4. ФИНАЛЬНЫЙ ПОВОРОТ / ОТКРЫТАЯ ПЕТЛЯ (40-55 сек): Неожиданная концовка или сильный вопрос в комментарии, стимулирующий репосты и повторные просмотры.
+
+Формат ответа СТРОГО в JSON без markdown блоков, лишних комментариев и префиксов:
+{
+  "title": ["3 цепляющих вирусных варианта заголовка с высоким CTR"],
+  "hook": "Финальный взрывной хук (первые 3 секунды)",
+  "script": "Полный текст сценария (разбитый на короткие динамичные фразы для быстрой начитки)",
+  "visuals": "Конкретные указания по видеоряду (B-roll, смена кадров каждые 2 секунды)",
+  "video_prompt": "Cinematic vertical 9:16 video prompt in English for Kling/Runway/Fal.ai",
+  "seo_description": "SEO оптимизированное описание для YouTube с ключевыми словами",
+  "hashtags": "#Shorts #Тренды #Тег1 #Тег2 #Тег3"
+}`;
+
+      let endpoint, headers, body;
+
+      if (provider === 'openrouter') {
+        const model = document.getElementById('modelOpenRouter').value || 'anthropic/claude-3.5-sonnet';
+        endpoint = "https://openrouter.ai/api/v1/chat/completions";
+        headers = {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${key}`,
+          "HTTP-Referer": "https://autoscriptor.app",
+          "X-Title": "AutoScriptor"
+        };
+        body = {
+          model: model,
+          messages: [
+            { role: "system", content: "You are an expert viral YouTube Shorts producer. Return valid JSON only." },
+            { role: "user", content: prompt }
+          ],
+          response_format: { type: "json_object" }
+        };
+      } else if (provider === 'gemini') {
+        let geminiModel = document.getElementById('modelGemini').value || 'gemini-2.5-flash';
+        endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${key}`;
+        headers = { "Content-Type": "application/json" };
+        body = {
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: "application/json" }
+        };
+      } else {
+        let baseUrl = document.getElementById('baseDeepseek').value.trim() || 'https://api.deepseek.com/v1';
+        baseUrl = baseUrl.replace(/\/+$/, '');
+        endpoint = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
+        const model = document.getElementById('modelDeepseek').value || 'deepseek-v4-pro';
+        headers = { "Content-Type": "application/json", "Authorization": `Bearer ${key}` };
+        body = {
+          model: model,
+          messages: [
+            { role: "system", content: "You are an expert viral YouTube Shorts producer. Return valid JSON only." },
+            { role: "user", content: prompt }
+          ],
+          response_format: { type: "json_object" }
+        };
+      }
+
+      const response = await executeRequest(endpoint, 'POST', headers, body);
+      const rawData = await response.json();
+      if (!response.ok) throw new Error(rawData.error?.message || "Ошибка API");
+
+      let contentStr = provider === 'gemini'
+        ? rawData.candidates?.[0]?.content?.parts?.[0]?.text
+        : rawData.choices?.[0]?.message?.content;
+
+      if (!contentStr) throw new Error("Пустой ответ от нейросети");
+      let cleanStr = contentStr.trim();
+      const match = cleanStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (match) cleanStr = match[1].trim();
+
+      return JSON.parse(cleanStr);
+    }
+
+    let isSpeaking = false;
     let currentAiData = null;
+    let currentAudioUrl = null;
 
     // CapCut Karaoke Engine Data
     let capcutPhrases = [];
     let isCapcutPlaying = false;
     let capcutRaf = null;
-    let audioDuration = 15;
+    let audioDuration = 10;
     let webAudioCtx = null;
     let bgmGainNode = null;
     let bgmOscillators = [];
 
+    // Эмодзи-словарь
     const EMOJI_MAP = {
       'деньги': '💰', 'рублей': '💸', 'долларов': '💵', 'миллион': '🤑', 'бизнес': '💼',
       'секрет': '🤫', 'шок': '😱', 'огонь': '🔥', 'взрыв': '💥', 'топ': '🏆',
@@ -577,22 +1198,23 @@
       });
     }
 
-    window.onload = () => {
-      const badge = document.getElementById('serverBadge');
-      if (isLocalServer) {
-        badge.innerHTML = '🟢 Локальный сервер (FFmpeg CapCut караоке & Edge-TTS)';
-        badge.className = 'text-emerald-400 font-semibold';
-      }
+    function toggleApiSettings() {
+      const content = document.getElementById('settingsContent');
+      const chevron = document.getElementById('settingsChevron');
+      content.classList.toggle('hidden');
+      chevron.classList.toggle('rotate-180');
+    }
 
+    window.onload = () => {
       const fields = [
         'keyOpenRouter', 'modelOpenRouter',
         'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
         'keyGemini', 'modelGemini',
-        'keyQwen', 'modelQwen',
         'keyElevenLabs', 'voiceElevenLabs', 'customVoiceElevenLabs',
         'keyOpenAI', 'voiceOpenAI',
         'keyFal', 'modelFal',
-        'aiProvider', 'ttsEngine', 'capcutStyleSelect', 'capcutColorSelect', 'capcutBgmSelect'
+        'aiProvider', 'ttsEngine',
+        'capcutStyleSelect', 'capcutColorSelect', 'capcutBgmSelect', 'trendRegion', 'trendCategory', 'trendFocus'
       ];
       
       fields.forEach(id => {
@@ -604,6 +1226,7 @@
       handleDeepseekKeyChange(false);
       updateTtsEngineUI();
       updateCapCutStyle();
+      loadPresetTrends('all');
     };
 
     function handleDeepseekKeyChange(showBadge = true) {
@@ -633,17 +1256,17 @@
         'keyOpenRouter', 'modelOpenRouter',
         'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
         'keyGemini', 'modelGemini',
-        'keyQwen', 'modelQwen',
         'keyElevenLabs', 'voiceElevenLabs', 'customVoiceElevenLabs',
         'keyOpenAI', 'voiceOpenAI',
         'keyFal', 'modelFal',
-        'aiProvider', 'ttsEngine', 'capcutStyleSelect', 'capcutColorSelect', 'capcutBgmSelect'
+        'aiProvider', 'ttsEngine',
+        'capcutStyleSelect', 'capcutColorSelect', 'capcutBgmSelect', 'trendRegion', 'trendCategory', 'trendFocus'
       ];
       fields.forEach(id => {
         const el = document.getElementById(id);
         if (el) localStorage.setItem(id, el.value.trim());
       });
-      alert("✅ Настройки и API-ключи успешно сохранены!");
+      if (isAndroid) AndroidBridge.showToast("✅ Настройки сохранены"); else alert("✅ Настройки сохранены");
     }
 
     function updateTtsEngineUI() {
@@ -653,10 +1276,10 @@
 
       if (engine === 'elevenlabs') {
         select.innerHTML = `
-          <option value="pNInz6obpgDQGcFmaJgB">Adam (Мужской, глубокий сторителлинг)</option>
-          <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Женский, мягкий нарратив)</option>
-          <option value="ErXwobaYiN019PkySvjV">Antoni (Мужской, энергичный)</option>
-          <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Женский, эмоциональный)</option>
+          <option value="pNInz6obpgDQGcFmaJgB">Adam (Мужской, глубокий)</option>
+          <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Женский, мягкий)</option>
+          <option value="ErXwobaYiN019PkySvjV">Antoni (Энергичный)</option>
+          <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Эмоциональный)</option>
         `;
       } else if (engine === 'openai') {
         select.innerHTML = `
@@ -666,39 +1289,48 @@
         `;
       } else {
         select.innerHTML = `
-          <option value="ru-RU-DmitryNeural">Дмитрий (Мужской, энергичный Edge-TTS)</option>
-          <option value="ru-RU-SvetlanaNeural">Светлана (Женский, мягкий Edge-TTS)</option>
+          <option value="default">Системный голос телефона</option>
         `;
       }
     }
 
-    async function executeRequest(url, method = 'POST', headers = {}, body = null, asBinary = false) {
-      if (isLocalServer) {
-        const res = await fetch('/api/proxy', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ endpoint: url, method, headers, body })
-        });
-        if (asBinary) {
-          const blob = await res.blob();
-          const dataUrl = URL.createObjectURL(blob);
-          return { status: res.status, ok: res.ok, dataUrl, isBinary: true };
+    // Android Native Network Bridge
+    const fetchCallbacks = {};
+    window.__androidFetchCallback = (requestId, status, data, error, isBinary) => {
+      const cb = fetchCallbacks[requestId];
+      if (!cb) return;
+      delete fetchCallbacks[requestId];
+      if (error) {
+        cb.reject(new Error(error));
+      } else {
+        try {
+          if (isBinary) {
+            cb.resolve({ status, ok: status >= 200 && status < 300, dataUrl: data, isBinary: true });
+          } else {
+            cb.resolve({ status, ok: status >= 200 && status < 300, json: () => JSON.parse(data), text: () => data, isBinary: false });
+          }
+        } catch (e) {
+          cb.reject(e);
         }
-        const txt = await res.text();
-        return {
-          status: res.status,
-          ok: res.ok,
-          json: () => JSON.parse(txt),
-          text: () => txt,
-          isBinary: false
-        };
+      }
+    };
+
+    async function executeRequest(url, method = 'POST', headers = {}, body = null) {
+      if (isAndroid) {
+        return new Promise((resolve, reject) => {
+          const reqId = Math.random().toString(36).substring(7);
+          fetchCallbacks[reqId] = { resolve, reject };
+          AndroidBridge.nativeFetch(reqId, url, method, JSON.stringify(headers), body ? (typeof body === 'string' ? body : JSON.stringify(body)) : '');
+        });
       } else {
         const options = { method, headers };
         if (body && method !== 'GET') {
           options.body = typeof body === 'string' ? body : JSON.stringify(body);
         }
         const res = await fetch(url, options);
-        if (asBinary) {
+        const contentType = res.headers.get('Content-Type') || '';
+        const isBinary = contentType.includes('audio') || contentType.includes('video') || contentType.includes('image');
+        if (isBinary) {
           const blob = await res.blob();
           const dataUrl = URL.createObjectURL(blob);
           return { status: res.status, ok: res.ok, dataUrl, isBinary: true };
@@ -725,7 +1357,79 @@
       return await res.text();
     }
 
-    async function generateScript() {
+    async function generateScript(customTopic = null, customHook = null) {
+      let url = (customTopic || document.getElementById('videoUrl').value).trim();
+      const provider = document.getElementById('aiProvider').value;
+      const loader = document.getElementById('loader');
+      const loaderText = document.getElementById('loaderText');
+      const resultContainer = document.getElementById('resultContainer');
+      const btn = document.getElementById('submitBtn');
+
+      const keys = {
+        openrouter: document.getElementById('keyOpenRouter').value.trim(),
+        gemini: document.getElementById('keyGemini').value.trim(),
+        deepseek: document.getElementById('keyDeepseek').value.trim()
+      };
+
+      if (!keys[provider]) {
+        const msg = `❌ Укажите API ключ для ${provider.toUpperCase()}`;
+        if (isAndroid) AndroidBridge.showToast(msg); else alert(msg);
+        document.getElementById('settingsContent').classList.remove('hidden');
+        document.getElementById('settingsChevron').classList.add('rotate-180');
+        return;
+      }
+      if (!url) {
+        const msg = "❌ Введите тему или вставьте ссылку на Shorts";
+        if (isAndroid) AndroidBridge.showToast(msg); else alert(msg);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+      resultContainer.classList.add('hidden');
+      loader.classList.remove('hidden');
+
+      try {
+        const isUrl = url.startsWith('http://') || url.startsWith('https://');
+        let aiData;
+
+        if (isUrl) {
+          loaderText.innerText = "1/2: Тянем текст из видео...";
+          const transcript = await fetchSubtitles(url);
+          loaderText.innerText = `2/2: Переписываем сценарий через ${provider.toUpperCase()}...`;
+          aiData = await callAI(provider, keys[provider], transcript);
+        } else {
+          loaderText.innerText = `1/2: ИИ пишет взрывной 9:16 сценарий (${provider.toUpperCase()})...`;
+          aiData = await callAIForTopic(provider, keys[provider], url, customHook || lastTrendHook);
+        }
+
+        currentAiData = aiData;
+
+        document.getElementById('resTitle').innerText = Array.isArray(aiData.title) ? aiData.title.join(' | ') : (aiData.title || '');
+        document.getElementById('resHook').innerText = aiData.hook || '';
+        document.getElementById('resScript').innerText = aiData.script || '';
+        document.getElementById('resSEO').innerText = aiData.seo_description || '';
+        document.getElementById('resTags').innerText = aiData.hashtags || '';
+        document.getElementById('resVisuals').innerText = aiData.visuals || '';
+
+        // Подготавливаем фразы для CapCut Studio
+        buildCapCutPhrases(aiData.script || '');
+
+        resultContainer.classList.remove('hidden');
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        const msg = err.message || "Ошибка генерации";
+        if (isAndroid) AndroidBridge.showToast("⚠️ " + msg); else alert("⚠️ " + msg);
+      } finally {
+        loader.classList.add('hidden');
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+      }
+    }
+
+    // Старая сигнатура сохранена для совместимости
+    async function _legacyGenerateScript() {
       const url = document.getElementById('videoUrl').value.trim();
       const provider = document.getElementById('aiProvider').value;
       const loader = document.getElementById('loader');
@@ -736,15 +1440,22 @@
       const keys = {
         openrouter: document.getElementById('keyOpenRouter').value.trim(),
         gemini: document.getElementById('keyGemini').value.trim(),
-        deepseek: document.getElementById('keyDeepseek').value.trim(),
-        qwen: document.getElementById('keyQwen').value.trim()
+        deepseek: document.getElementById('keyDeepseek').value.trim()
       };
 
-      if (!keys[provider]) return alert(`❌ Укажите API-ключ для ${provider.toUpperCase()}`);
-      if (!url) return alert("❌ Вставьте ссылку на YouTube видео или Shorts");
+      if (!keys[provider]) {
+        const msg = `❌ Укажите API ключ для ${provider.toUpperCase()}`;
+        if (isAndroid) AndroidBridge.showToast(msg); else alert(msg);
+        return;
+      }
+      if (!url) {
+        const msg = "❌ Вставьте ссылку на видео или Shorts";
+        if (isAndroid) AndroidBridge.showToast(msg); else alert(msg);
+        return;
+      }
 
       btn.disabled = true;
-      btn.classList.add('opacity-50', 'pointer-events-none');
+      btn.classList.add('opacity-50');
       resultContainer.classList.add('hidden');
       loader.classList.remove('hidden');
 
@@ -762,23 +1473,25 @@
         document.getElementById('resSEO').innerText = aiData.seo_description || '';
         document.getElementById('resTags').innerText = aiData.hashtags || '';
         document.getElementById('resVisuals').innerText = aiData.visuals || '';
-        
+
+        // Подготавливаем фразы для CapCut Studio
         buildCapCutPhrases(aiData.script || '');
 
         resultContainer.classList.remove('hidden');
         resultContainer.scrollIntoView({ behavior: 'smooth' });
 
       } catch (err) {
-        alert("⚠️ " + (err.message || "Ошибка"));
+        const msg = err.message || "Ошибка генерации";
+        if (isAndroid) AndroidBridge.showToast("⚠️ " + msg); else alert("⚠️ " + msg);
       } finally {
         loader.classList.add('hidden');
         btn.disabled = false;
-        btn.classList.remove('opacity-50', 'pointer-events-none');
+        btn.classList.remove('opacity-50');
       }
     }
 
     async function callAI(provider, key, text) {
-      const prompt = `Ты ведущий эксперт по вирусному контенту для YouTube и Shorts. Перепиши данный сценарий своими словами, сохранив динамику, ритм и высокое удержание внимания.
+      const prompt = `Ты ведущий эксперт по вирусному контенту для YouTube Shorts и Reels. Перепиши данный сценарий своими словами, сохранив динамику, ритм и высокое удержание внимания.
 Формат ответа СТРОГО в JSON без лишнего текста, комментариев и без кодовых блоков markdown:
 {
   "title": "3 цепляющих варианта заголовка",
@@ -817,26 +1530,14 @@
           contents: [{ role: "user", parts: [{ text: prompt + "\n\nИсходник видео:\n" + text }] }],
           generationConfig: { responseMimeType: "application/json" }
         };
-      } else if (provider === 'deepseek') {
+      } else {
         let baseUrl = document.getElementById('baseDeepseek').value.trim() || 'https://api.deepseek.com/v1';
         baseUrl = baseUrl.replace(/\/+$/, '');
         endpoint = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
         const model = document.getElementById('modelDeepseek').value || 'deepseek-v4-pro';
-        headers = {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${key}`
-        };
-        body = {
-          model: model,
-          messages: [{ role: "system", content: prompt }, { role: "user", content: "Исходник:\n" + text }],
-          response_format: { type: "json_object" }
-        };
-      } else {
-        const qwenModel = document.getElementById('modelQwen').value || 'qwen-plus';
-        endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
         headers = { "Content-Type": "application/json", "Authorization": `Bearer ${key}` };
         body = {
-          model: qwenModel,
+          model: model,
           messages: [{ role: "system", content: prompt }, { role: "user", content: "Исходник:\n" + text }],
           response_format: { type: "json_object" }
         };
@@ -844,14 +1545,13 @@
 
       const response = await executeRequest(endpoint, 'POST', headers, body);
       const rawData = await response.json();
-      if (!response.ok) throw new Error(rawData.error?.message || "Ошибка API нейросети");
+      if (!response.ok) throw new Error(rawData.error?.message || "Ошибка API");
 
       let contentStr = provider === 'gemini'
         ? rawData.candidates?.[0]?.content?.parts?.[0]?.text
         : rawData.choices?.[0]?.message?.content;
 
       if (!contentStr) throw new Error("Пустой ответ от нейросети");
-
       let cleanStr = contentStr.trim();
       const match = cleanStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       if (match) cleanStr = match[1].trim();
@@ -864,19 +1564,37 @@
     // ==============================================
     async function generateSpeech() {
       const scriptText = document.getElementById('resScript').innerText.trim();
-      if (!scriptText) return alert("❌ Сначала сгенерируйте сценарий!");
+      if (!scriptText) {
+        if (isAndroid) AndroidBridge.showToast("❌ Сначала сгенерируйте сценарий"); else alert("❌ Сначала сгенерируйте сценарий");
+        return;
+      }
 
       const engine = document.getElementById('ttsEngine').value;
-      const btn = document.getElementById('btnVoice');
+      const btn = document.getElementById('btnGenerateSpeech');
       const oldHtml = btn.innerHTML;
 
+      if (engine === 'device') {
+        if (isAndroid) {
+          AndroidBridge.speak(scriptText, 1.15);
+          AndroidBridge.showToast("🔊 Воспроизведение через телефон");
+        } else if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(scriptText);
+          u.lang = 'ru-RU';
+          window.speechSynthesis.speak(u);
+        }
+        buildCapCutPhrases(scriptText, 25);
+        toggleCapCutPlay();
+        return;
+      }
+
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Генерация речи...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Генерация голоса...</span>`;
 
       try {
         if (engine === 'elevenlabs') {
           const key = document.getElementById('keyElevenLabs').value.trim();
-          if (!key) throw new Error("Введите API-ключ ElevenLabs во вкладке 'Озвучка'!");
+          if (!key) throw new Error("Введите API-ключ ElevenLabs в настройках");
 
           let voiceId = document.getElementById('ttsVoiceSelect').value;
           const customId = document.getElementById('customVoiceElevenLabs').value.trim();
@@ -886,80 +1604,49 @@
           const headers = { "xi-api-key": key, "Content-Type": "application/json", "Accept": "audio/mpeg" };
           const body = { text: scriptText, model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.5, similarity_boost: 0.8 } };
 
-          const res = await executeRequest(endpoint, 'POST', headers, body, true);
-          if (!res.ok) throw new Error("Ошибка генерации ElevenLabs");
+          const res = await executeRequest(endpoint, 'POST', headers, body);
+          if (!res.ok) throw new Error("Ошибка ElevenLabs API");
 
           currentAudioUrl = res.dataUrl;
           const player = document.getElementById('ttsAudioPlayer');
           player.src = currentAudioUrl;
+
           player.onloadedmetadata = () => {
             audioDuration = player.duration || 15;
             buildCapCutPhrases(scriptText, audioDuration);
             toggleCapCutPlay();
           };
           player.load();
+          if (isAndroid) AndroidBridge.showToast("🎙 Голос ElevenLabs готов!");
 
         } else if (engine === 'openai') {
           const key = document.getElementById('keyOpenAI').value.trim();
-          if (!key) throw new Error("Введите API-ключ OpenAI во вкладке 'Озвучка'!");
+          if (!key) throw new Error("Введите API-ключ OpenAI в настройках");
 
           const voice = document.getElementById('ttsVoiceSelect').value || 'onyx';
           const endpoint = "https://api.openai.com/v1/audio/speech";
           const headers = { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" };
-          const body = { model: "tts-1", input: scriptText, voice };
+          const body = { model: "tts-1", input: scriptText, voice: voice };
 
-          const res = await executeRequest(endpoint, 'POST', headers, body, true);
-          if (!res.ok) throw new Error("Ошибка генерации OpenAI TTS");
+          const res = await executeRequest(endpoint, 'POST', headers, body);
+          if (!res.ok) throw new Error("Ошибка OpenAI TTS");
 
           currentAudioUrl = res.dataUrl;
           const player = document.getElementById('ttsAudioPlayer');
           player.src = currentAudioUrl;
+
           player.onloadedmetadata = () => {
             audioDuration = player.duration || 15;
             buildCapCutPhrases(scriptText, audioDuration);
             toggleCapCutPlay();
           };
           player.load();
-
-        } else {
-          // Edge-TTS
-          if (!isLocalServer) {
-            if ('speechSynthesis' in window) {
-              window.speechSynthesis.cancel();
-              const u = new SpeechSynthesisUtterance(scriptText);
-              u.lang = 'ru-RU';
-              window.speechSynthesis.speak(u);
-              buildCapCutPhrases(scriptText, 20);
-              toggleCapCutPlay();
-              return;
-            } else {
-              throw new Error("Запустите AutoScriptor через run.bat для Edge-TTS или используйте ElevenLabs!");
-            }
-          }
-
-          const voice = document.getElementById('ttsVoiceSelect').value || 'ru-RU-DmitryNeural';
-          const res = await fetch('/api/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: scriptText, voice, rate: '+10%' })
-          });
-          const data = await res.json();
-          if (!res.ok || !data.success) throw new Error(data.error?.message || "Ошибка Edge-TTS");
-
-          currentAudioId = data.audio_id;
-          currentAudioUrl = data.audio_url;
-          const player = document.getElementById('ttsAudioPlayer');
-          player.src = currentAudioUrl;
-          player.onloadedmetadata = () => {
-            audioDuration = player.duration || data.duration || 15;
-            buildCapCutPhrases(scriptText, audioDuration);
-            toggleCapCutPlay();
-          };
-          player.load();
+          if (isAndroid) AndroidBridge.showToast("🎙 Голос OpenAI готов!");
         }
 
       } catch (err) {
-        alert("⚠️ " + (err.message || "Ошибка"));
+        const msg = err.message || "Ошибка озвучки";
+        if (isAndroid) AndroidBridge.showToast("⚠️ " + msg); else alert("⚠️ " + msg);
       } finally {
         btn.disabled = false;
         btn.innerHTML = oldHtml;
@@ -987,6 +1674,7 @@
       }
       if (currentChunk.length > 0) capcutPhrases.push([...currentChunk]);
 
+      // Рассчитываем тайминги фраз и каждого слова
       const totalChars = capcutPhrases.reduce((acc, ch) => acc + ch.reduce((wacc, w) => wacc + w.length, 0), 0);
       const timePerChar = audioDuration / Math.max(1, totalChars);
 
@@ -997,6 +1685,7 @@
         const phraseStart = curTime;
         const phraseEnd = curTime + chunkDur;
 
+        // Тайминги отдельных слов
         let wordTime = phraseStart;
         const wordsWithTime = chunk.map(w => {
           const wDur = w.length * timePerChar;
@@ -1011,7 +1700,11 @@
         });
 
         curTime = phraseEnd;
-        return { words: wordsWithTime, start: phraseStart, end: phraseEnd };
+        return {
+          words: wordsWithTime,
+          start: phraseStart,
+          end: phraseEnd
+        };
       });
 
       document.getElementById('capcutTimeTotal').innerText = formatTime(audioDuration);
@@ -1025,14 +1718,20 @@
       const spans = wordsBox.querySelectorAll('span');
       spans.forEach(s => {
         s.className = `word-${style}` + (s.classList.contains('active') ? ' active' : '');
-        if (s.classList.contains('active')) s.style.color = highlightColor;
-        else s.style.color = '';
+        if (s.classList.contains('active')) {
+          s.style.color = highlightColor;
+        } else {
+          s.style.color = '';
+        }
       });
     }
 
     function toggleCapCutPlay() {
-      if (isCapcutPlaying) pauseCapCut();
-      else playCapCut();
+      if (isCapcutPlaying) {
+        pauseCapCut();
+      } else {
+        playCapCut();
+      }
     }
 
     function playCapCut() {
@@ -1040,7 +1739,9 @@
       isCapcutPlaying = true;
       document.getElementById('capcutPlayIcon').className = 'fa-solid fa-pause';
       
-      if (currentAudioUrl) player.play();
+      if (currentAudioUrl) {
+        player.play();
+      }
       playBgmAudio();
 
       const startTime = performance.now() - (player.currentTime * 1000);
@@ -1091,6 +1792,7 @@
 
       if (capcutPhrases.length === 0) return;
 
+      // Находим текущую фразу
       const activePhrase = capcutPhrases.find(p => time >= p.start && time <= p.end) || capcutPhrases[0];
       const style = document.getElementById('capcutStyleSelect').value;
       const highlightColor = document.getElementById('capcutColorSelect').value;
@@ -1132,7 +1834,7 @@
     }
 
     // ==============================================
-    // 🎵 СИНТЕЗАТОР ФОНОВОЙ МУЗЫКИ
+    // 🎵 СИНТЕЗАТОР ФОНОВОЙ МУЗЫКИ (WEB AUDIO BGM)
     // ==============================================
     function initWebAudio() {
       if (!webAudioCtx) {
@@ -1151,14 +1853,15 @@
       updateBgmVolume();
       stopBgmAudio();
 
+      // Создаем приятный Lo-Fi / Synth ambient аккорд
       const baseFreq = bgmType === 'phonk' ? 110 : (bgmType === 'synth' ? 146.83 : 130.81);
-      const chord = [1.0, 1.25, 1.5];
+      const chord = [1.0, 1.25, 1.5]; // Мажорное/минорное трезвучие
 
       chord.forEach(ratio => {
         const osc = webAudioCtx.createOscillator();
         const filter = webAudioCtx.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.value = 600;
+        filter.frequency.value = 600; // Мягкий лоу-фай фильтр
 
         osc.type = bgmType === 'phonk' ? 'sawtooth' : 'triangle';
         osc.frequency.value = baseFreq * ratio;
@@ -1180,68 +1883,26 @@
     function updateBgmVolume() {
       if (!bgmGainNode) return;
       const vol = document.getElementById('capcutBgmVolume').value / 100;
+      // Авто-приглушение (Ducking)
       bgmGainNode.gain.setValueAtTime(vol * 0.15, webAudioCtx ? webAudioCtx.currentTime : 0);
     }
 
     function updateBgmTrack() {
-      if (isCapcutPlaying) playBgmAudio();
+      if (isCapcutPlaying) {
+        playBgmAudio();
+      }
     }
 
     // ==============================================
-    // 🎬 РЕНДЕРИНГ ВИДЕО (FFMPEG С CAPCUT КАРАОКЕ)
+    // 🎬 ЭКСПОРТ ВИДЕО 9:16
     // ==============================================
-    async function renderVideo() {
-      if (!isLocalServer) {
-        alert("🎬 Запуск предпросмотра CapCut Studio в браузере!\n\n💡 Чтобы экспортировать итоговый MP4 файл через FFmpeg, запустите AutoScriptor локально через run.bat.");
-        playCapCut();
-        return;
+    async function exportCapCutVideo() {
+      if (isAndroid) {
+        AndroidBridge.showToast("🎬 Экспорт видео 9:16 со стилем CapCut...");
+      } else {
+        alert("🎬 Экспорт видео 9:16 со стилем CapCut...");
       }
-
-      if (!currentAudioId) {
-        await generateSpeech();
-        if (!currentAudioId) return;
-      }
-
-      const captionStyle = document.getElementById('capcutStyleSelect').value;
-      const highlightColor = document.getElementById('capcutColorSelect').value === '#FFDE59' ? 'yellow' : (document.getElementById('capcutColorSelect').value === '#00FF66' ? 'green' : 'cyan');
-      const punchZoom = document.getElementById('capcutPunchZoom').checked;
-      const scriptText = document.getElementById('resScript').innerText.trim();
-
-      const btn = document.getElementById('btnVideo');
-      const oldHtml = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Монтаж CapCut (FFmpeg)...</span>`;
-
-      try {
-        const res = await fetch('/api/render-video', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            audio_id: currentAudioId,
-            caption_style: captionStyle,
-            highlight_color: highlightColor,
-            punch_zoom: punchZoom,
-            text: scriptText
-          })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.error?.message || "Ошибка рендеринга");
-
-        const videoPlayer = document.getElementById('videoPlayer');
-        const dlBtn = document.getElementById('videoDownloadBtn');
-        videoPlayer.src = data.video_url;
-        dlBtn.href = data.video_url;
-        dlBtn.download = data.filename;
-
-        document.getElementById('videoPlayerSection').classList.remove('hidden');
-        document.getElementById('videoPlayerSection').scrollIntoView({ behavior: 'smooth' });
-        videoPlayer.play();
-      } catch (err) {
-        alert("⚠️ " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = oldHtml;
-      }
+      playCapCut();
     }
 
     function copyAiVideoPrompt() {
@@ -1250,20 +1911,25 @@
         prompt = currentAiData.video_prompt || `${currentAiData.hook || ''}, ${currentAiData.visuals || ''}, vertical 9:16 cinematic 8k`;
       }
       navigator.clipboard.writeText(prompt).then(() => {
-        alert("✓ Кинематографичный 9:16 промпт скопирован в буфер для Kling / Runway / Sora!");
+        if (isAndroid) AndroidBridge.showToast("✓ Промпт 9:16 скопирован для Kling/Runway");
+        else alert("✓ Промпт 9:16 скопирован для Kling/Runway");
       });
+    }
+
+    function shareBlock(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      if (isAndroid) AndroidBridge.shareText("AutoScriptor", el.innerText);
+      else if (navigator.share) navigator.share({ text: el.innerText });
+      else copyBlock(elementId);
     }
 
     function copyBlock(elementId) {
       const el = document.getElementById(elementId);
       if (!el) return;
-      const text = el.innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = event.currentTarget;
-        const span = btn.querySelector('span');
-        const oldText = span.innerText;
-        span.innerText = '✓ Скопировано!';
-        setTimeout(() => { span.innerText = oldText; }, 2000);
+      navigator.clipboard.writeText(el.innerText).then(() => {
+        if (isAndroid) AndroidBridge.showToast("✓ Скопировано в буфер");
+        else alert("✓ Скопировано!");
       });
     }
   </script>
