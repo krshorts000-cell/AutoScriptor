@@ -4093,16 +4093,34 @@ async function callAI(provider, key, text) {
         requestAnimationFrame(recordLoop);
 
         const videoBlob = await recordPromise;
-        const url = URL.createObjectURL(videoBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `AutoScriptor_Short_${Date.now()}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const filename = `AutoScriptor_Short_${Date.now()}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`;
 
-        if (isAndroid) AndroidBridge.showToast("✅ Видео 9:16 успешно сохранено!");
-        else alert("✅ Видео 9:16 готово и сохранено!");
+        if (isAndroid && window.AndroidBridge && typeof AndroidBridge.saveVideo === 'function') {
+          btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Запись в Галерею...</span>`;
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64Data = reader.result;
+            AndroidBridge.saveVideo(base64Data, filename, mimeType);
+            btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span>Сохранено в Галерею!</span>`;
+            showExportModal(filename, 'android', base64Data, mimeType, null);
+            setTimeout(() => { btn.innerHTML = originalHtml; }, 3500);
+          };
+          reader.readAsDataURL(videoBlob);
+        } else {
+          const url = URL.createObjectURL(videoBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+          }, 2000);
+
+          btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span>Скачано в Загрузки!</span>`;
+          showExportModal(filename, 'web', null, mimeType, url);
+          setTimeout(() => { btn.innerHTML = originalHtml; }, 3500);
+        }
 
       } catch (err) {
         console.error(err);
@@ -4115,6 +4133,76 @@ async function callAI(provider, key, text) {
         btn.innerHTML = originalHtml;
       }
     }
+
+    
+    // ==============================================
+    // 📁 МОДАЛЬНОЕ ОКНО И УВЕДОМЛЕНИЕ О ВЫГРУЗКЕ ВИДЕО
+    // ==============================================
+    let lastExportData = { base64Data: null, filename: null, mimeType: null, blobUrl: null };
+
+    function showExportModal(filename, platform, base64Data, mimeType, blobUrl) {
+      lastExportData = { base64Data, filename, mimeType, blobUrl };
+
+      let modal = document.getElementById('exportResultModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'exportResultModal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md transition-all duration-300';
+        document.body.appendChild(modal);
+      }
+
+      const isPhone = platform === 'android';
+      const destText = isPhone
+        ? '📱 <b>Галерея устройства</b> & папка <b>Movies / AutoScriptor</b> (также доступно в Google Фото и проводнике)'
+        : '💻 Системная папка <b>«Загрузки» (Downloads)</b> на вашем компьютере/устройстве';
+
+      modal.innerHTML = `
+        <div class="glass-panel-glow max-w-sm w-full p-5 rounded-3xl space-y-4 border border-indigo-500/40 text-center animate-in zoom-in-95 duration-200">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white text-2xl shadow-lg shadow-emerald-500/30">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white">🎬 Видео 9:16 готово!</h3>
+            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">${destText}</p>
+          </div>
+          <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-[11px] font-mono text-indigo-300 break-all select-all flex items-center justify-between gap-2">
+            <span>📁 ${filename}</span>
+            <i class="fa-solid fa-file-video text-slate-500 text-xs"></i>
+          </div>
+          <div class="space-y-2 pt-1">
+            ${isPhone ? `
+              <button onclick="shareExportedVideo()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 text-white font-bold py-2.5 rounded-xl shadow-lg active:scale-95 text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-share-nodes"></i> <span>Поделиться (Telegram / YouTube / VK)</span>
+              </button>
+            ` : (blobUrl ? `
+              <a href="${blobUrl}" target="_blank" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 text-white font-bold py-2.5 rounded-xl shadow-lg active:scale-95 text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play"></i> <span>Открыть видео в новой вкладке</span>
+              </a>
+            ` : '')}
+            <button onclick="closeExportModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs active:scale-95 transition-all">
+              Понятно, закрыть
+            </button>
+          </div>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function shareExportedVideo() {
+      if (isAndroid && window.AndroidBridge && typeof AndroidBridge.shareVideo === 'function' && lastExportData.base64Data) {
+        AndroidBridge.shareVideo(lastExportData.base64Data, lastExportData.filename, lastExportData.mimeType);
+      } else if (lastExportData.blobUrl && navigator.share) {
+        navigator.share({ title: lastExportData.filename, url: lastExportData.blobUrl }).catch(() => {});
+      } else {
+        alert("Видео сохранено на устройстве: " + (lastExportData.filename || ""));
+      }
+    }
+
+    function closeExportModal() {
+      const modal = document.getElementById('exportResultModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
 
     function copyAiVideoPrompt() {
       let prompt = "Vertical 9:16 cinematic video, hyperrealistic 8K, smooth camera zoom, volumetric lighting";
