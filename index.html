@@ -3,97 +3,202 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Video Script Cloner</title>
+  <title>AutoScriptor — AI Video Script Cloner</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8 font-sans">
-  <div class="max-w-5xl mx-auto space-y-8">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 font-sans antialiased">
+  <div class="max-w-5xl mx-auto space-y-6">
     
-    <header class="text-center space-y-3">
-      <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-        AI Video Cloner
+    <!-- Header -->
+    <header class="text-center space-y-2 pt-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-1">
+        <span id="serverBadge">🌐 GitHub Pages Режим</span>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400 tracking-tight">
+        AutoScriptor
       </h1>
-      <p class="text-slate-400">Клонируй структуру чужих видео и получай готовый виральный сценарий</p>
+      <p class="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
+        Клонируй структуру успешных видео & Shorts и получай готовый виральный сценарий за секунды
+      </p>
     </header>
 
     <!-- Настройки API -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-slate-200">🔑 API Ключи (Сохраняются в браузере)</h2>
-        <button onclick="saveKeys()" class="bg-slate-700 hover:bg-slate-600 text-sm px-4 py-2 rounded-lg transition-colors">
-          💾 Сохранить
+    <div class="bg-slate-900/90 backdrop-blur p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-key text-amber-400"></i>
+          <h2 class="text-base font-bold text-slate-200">Настройки API (Сохраняются локально в браузере)</h2>
+        </div>
+        <button onclick="saveKeys()" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-md active:scale-95">
+          <i class="fa-regular fa-floppy-disk"></i> Сохранить
         </button>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">DeepSeek API Key</label>
-          <input type="password" id="keyDeepseek" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- DeepSeek -->
+        <div class="space-y-2 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-indigo-300">DeepSeek / AI STAR</label>
+            <span id="starimgBadge" class="hidden text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">
+              AI STAR Ключ
+            </span>
+          </div>
+          <input type="password" id="keyDeepseek" oninput="handleDeepseekKeyChange()" placeholder="sk-... или sk-star-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+          
+          <div class="space-y-1.5 pt-1">
+            <label class="block text-[11px] font-medium text-slate-400">Base URL (Сервер API):</label>
+            <input type="text" id="baseDeepseek" placeholder="https://api.deepseek.com/v1" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
+            <select id="modelDeepseek" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="deepseek-chat">deepseek-chat (Официальный DeepSeek V3)</option>
+              <option value="deepseek-v4-pro">deepseek-v4-pro (AI STAR / Агрегаторы)</option>
+              <option value="deepseek-v4.1-flash">deepseek-v4.1-flash (AI STAR Flash)</option>
+              <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek R1)</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Qwen API Key</label>
-          <input type="password" id="keyQwen" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+
+        <!-- Google Gemini -->
+        <div class="space-y-2 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-cyan-300">Google Gemini</label>
+            <span class="text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full">
+              Бесплатно в AI Studio
+            </span>
+          </div>
+          <input type="password" id="keyGemini" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-cyan-500 outline-none font-mono">
+          
+          <div class="space-y-1.5 pt-1">
+            <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
+            <select id="modelGemini" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:ring-2 focus:ring-cyan-500 outline-none">
+              <option value="gemini-1.5-flash">gemini-1.5-flash (Быстрый & Бесплатный)</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro (Максимальное качество)</option>
+              <option value="gemini-2.5-flash">gemini-2.5-flash (Новое поколение)</option>
+            </select>
+          </div>
+          <p class="text-[10px] text-slate-500 pt-1">
+            Работает прямо из браузера на GitHub Pages без ограничений CORS.
+          </p>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Gemini API Key</label>
-          <input type="password" id="keyGemini" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+
+        <!-- Qwen -->
+        <div class="space-y-2 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-emerald-300">Qwen (DashScope)</label>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">Alibaba Cloud</span>
+          </div>
+          <input type="password" id="keyQwen" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-emerald-500 outline-none font-mono">
+          
+          <div class="space-y-1.5 pt-1">
+            <label class="block text-[11px] font-medium text-slate-400">Модель:</label>
+            <select id="modelQwen" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="qwen-plus">qwen-plus</option>
+              <option value="qwen-max">qwen-max</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Основная форма -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-5">
+    <div class="bg-slate-900/90 backdrop-blur p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-5">
       <div>
-        <label class="block text-sm font-semibold text-slate-300 mb-2">Ссылка на видео или Shorts</label>
-        <input type="url" id="videoUrl" placeholder="https://www.youtube.com/shorts/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+        <label class="block text-sm font-bold text-slate-300 mb-2">Ссылка на YouTube-видео или Shorts</label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+            <i class="fa-brands fa-youtube text-red-500 text-lg"></i>
+          </div>
+          <input type="url" id="videoUrl" placeholder="https://www.youtube.com/shorts/... или watch?v=..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+        </div>
       </div>
 
       <div class="flex flex-col md:flex-row gap-4">
         <div class="w-full md:w-1/3">
-          <label class="block text-sm font-semibold text-slate-300 mb-2">Нейросеть</label>
-          <select id="aiProvider" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer">
-            <option value="deepseek">DeepSeek V3</option>
-            <option value="gemini">Google Gemini 1.5</option>
-            <option value="qwen">Qwen Max</option>
+          <label class="block text-sm font-bold text-slate-300 mb-2">Использовать нейросеть</label>
+          <select id="aiProvider" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-3.5 px-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer text-sm">
+            <option value="deepseek">DeepSeek / AI STAR</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="qwen">Qwen (DashScope)</option>
           </select>
         </div>
         <div class="w-full md:w-2/3 flex items-end">
-          <button onclick="generateScript()" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg transform active:scale-[0.98]">
-            🚀 Сгенерировать контент
+          <button onclick="generateScript()" id="submitBtn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-extrabold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.99] flex items-center justify-center gap-2 text-sm md:text-base">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Сгенерировать контент
           </button>
         </div>
       </div>
     </div>
 
     <!-- Загрузка -->
-    <div id="loader" class="hidden flex flex-col items-center py-10 space-y-3">
-      <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-      <p id="loaderText" class="text-indigo-400 font-medium text-sm">Тянем текст напрямую...</p>
+    <div id="loader" class="hidden flex flex-col items-center py-10 space-y-3 bg-slate-900/50 rounded-2xl border border-slate-800/50">
+      <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <p id="loaderText" class="text-indigo-400 font-semibold text-sm">Тянем текст напрямую...</p>
     </div>
 
     <!-- Результат -->
     <div id="resultContainer" class="hidden space-y-6">
-      <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-        <h3 class="text-xl font-black text-amber-400 mb-2">🔥 Идеи заголовка & Хук</h3>
-        <p id="resTitle" class="font-bold text-slate-200 mb-2"></p>
-        <p id="resHook" class="text-lg italic text-slate-400 border-l-4 border-amber-500 pl-4"></p>
+      <!-- Заголовок и хук -->
+      <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl relative group">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-black text-amber-400 flex items-center gap-2">
+            <i class="fa-solid fa-fire"></i> Идеи заголовка & Хук (первые 3 сек)
+          </h3>
+          <button onclick="copyBlock('titleHookBlock')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center gap-1.5">
+            <i class="fa-regular fa-copy"></i> <span>Копировать</span>
+          </button>
+        </div>
+        <div id="titleHookBlock">
+          <p id="resTitle" class="font-bold text-slate-100 text-base mb-2"></p>
+          <p id="resHook" class="text-base italic text-slate-300 border-l-4 border-amber-500 pl-4 py-1 bg-amber-500/5 rounded-r-lg"></p>
+        </div>
       </div>
 
-      <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-        <h3 class="text-xl font-black text-indigo-400 mb-4">📜 Сценарий</h3>
-        <div id="resScript" class="whitespace-pre-wrap text-slate-300 leading-relaxed font-medium"></div>
+      <!-- Сценарий -->
+      <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl relative group">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-black text-indigo-400 flex items-center gap-2">
+            <i class="fa-solid fa-scroll"></i> Сценарий для озвучки
+          </h3>
+          <button onclick="copyBlock('resScript')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center gap-1.5">
+            <i class="fa-regular fa-copy"></i> <span>Копировать</span>
+          </button>
+        </div>
+        <div id="resScript" class="whitespace-pre-wrap text-slate-200 leading-relaxed text-sm md:text-base font-normal bg-slate-950/60 p-4 rounded-xl border border-slate-800"></div>
       </div>
 
+      <!-- Сетка описания и B-roll -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-          <h3 class="font-bold text-emerald-400 mb-3">📌 Описание & Теги</h3>
-          <p id="resSEO" class="text-sm text-slate-300 mb-4 whitespace-pre-wrap"></p>
-          <div class="bg-slate-900 p-3 rounded-lg">
-            <p id="resTags" class="text-xs text-indigo-300 font-mono break-words"></p>
+        <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-emerald-400 flex items-center gap-2 text-sm md:text-base">
+              <i class="fa-solid fa-hashtag"></i> Описание & Теги
+            </h3>
+            <button onclick="copyBlock('seoBlock')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors flex items-center gap-1">
+              <i class="fa-regular fa-copy"></i> <span>Копировать</span>
+            </button>
+          </div>
+          <div id="seoBlock" class="space-y-3">
+            <p id="resSEO" class="text-xs md:text-sm text-slate-300 whitespace-pre-wrap bg-slate-950/60 p-3 rounded-xl border border-slate-800"></p>
+            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+              <p id="resTags" class="text-xs text-indigo-300 font-mono break-words"></p>
+            </div>
           </div>
         </div>
-        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-          <h3 class="font-bold text-purple-400 mb-3">🎬 B-Roll (Монтаж)</h3>
-          <p id="resVisuals" class="text-sm text-slate-300 whitespace-pre-wrap"></p>
+
+        <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-purple-400 flex items-center gap-2 text-sm md:text-base">
+              <i class="fa-solid fa-film"></i> B-Roll (Раскадровка & Монтаж)
+            </h3>
+            <button onclick="copyBlock('resVisuals')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors flex items-center gap-1">
+              <i class="fa-regular fa-copy"></i> <span>Копировать</span>
+            </button>
+          </div>
+          <p id="resVisuals" class="text-xs md:text-sm text-slate-300 whitespace-pre-wrap bg-slate-950/60 p-3 rounded-xl border border-slate-800 leading-relaxed"></p>
         </div>
       </div>
     </div>
@@ -101,30 +206,77 @@
   </div>
 
   <script>
-    // Никаких GAS_WEB_APP_URL больше нет, Гугл нам не указ!
+    const isLocalServer = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
     window.onload = () => {
-      ['keyDeepseek', 'keyQwen', 'keyGemini'].forEach(id => {
-        if (localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id);
+      // Индикатор сервера
+      const badge = document.getElementById('serverBadge');
+      if (isLocalServer) {
+        badge.innerHTML = '🟢 Локальный сервер (CORS отключен)';
+        badge.className = 'text-emerald-400';
+      }
+
+      // Загрузка сохранённых данных
+      const fields = [
+        'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
+        'keyGemini', 'modelGemini',
+        'keyQwen', 'modelQwen',
+        'aiProvider'
+      ];
+      
+      fields.forEach(id => {
+        const val = localStorage.getItem(id);
+        const el = document.getElementById(id);
+        if (val && el) el.value = val;
       });
+
+      handleDeepseekKeyChange(false);
     };
 
-    function saveKeys() {
-      ['keyDeepseek', 'keyQwen', 'keyGemini'].forEach(id => {
-        localStorage.setItem(id, document.getElementById(id).value.trim());
-      });
-      alert("✅ Ключи сохранены");
+    function handleDeepseekKeyChange(showBadge = true) {
+      const key = document.getElementById('keyDeepseek').value.trim();
+      const baseEl = document.getElementById('baseDeepseek');
+      const modelEl = document.getElementById('modelDeepseek');
+      const badge = document.getElementById('starimgBadge');
+
+      if (key.startsWith('sk-star-')) {
+        badge.classList.remove('hidden');
+        if (!baseEl.value || baseEl.value.includes('api.deepseek.com')) {
+          baseEl.value = 'https://ai.starimg.ru/v1';
+        }
+        if (modelEl.value === 'deepseek-chat') {
+          modelEl.value = 'deepseek-v4-pro';
+        }
+      } else {
+        badge.classList.add('hidden');
+        if (baseEl.value === 'https://ai.starimg.ru/v1') {
+          baseEl.value = 'https://api.deepseek.com/v1';
+        }
+      }
     }
 
-    // Обращение к открытому независимому API напрямую из браузера
+    function saveKeys() {
+      const fields = [
+        'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
+        'keyGemini', 'modelGemini',
+        'keyQwen', 'modelQwen',
+        'aiProvider'
+      ];
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) localStorage.setItem(id, el.value.trim());
+      });
+      alert("✅ Настройки и ключи сохранены");
+    }
+
     async function fetchSubtitles(url) {
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/shorts\/)([^#\&\?]*).*/;
       const match = url.match(regExp);
       const videoId = (match && match[2].length === 11) ? match[2] : null;
       
-      if (!videoId) throw new Error("Неверная ссылка на видео");
+      if (!videoId) throw new Error("Неверная ссылка на видео (поддерживаются YouTube и Shorts)");
 
-      // Сначала запрашиваем русские субтитры
+      // Сначала пробуем получить русские субтитры
       let res = await fetch(`https://youtube-transcript.ai/transcript/${videoId}.txt?lang=ru`);
       
       // Если русских нет, берем оригинальные
@@ -133,10 +285,14 @@
       }
 
       if (!res.ok) {
-        throw new Error("❌ API не смог вытащить субтитры. Скорее всего, автор их полностью запретил.");
+        throw new Error("❌ Не удалось извлечь субтитры. Автор отключил субтитры или видео закрыто.");
       }
 
-      return await res.text();
+      const text = await res.text();
+      if (!text || text.trim().length === 0) {
+        throw new Error("Субтитры пусты.");
+      }
+      return text;
     }
 
     async function generateScript() {
@@ -149,15 +305,15 @@
 
       const keys = {
         deepseek: document.getElementById('keyDeepseek').value.trim(),
-        qwen: document.getElementById('keyQwen').value.trim(),
-        gemini: document.getElementById('keyGemini').value.trim()
+        gemini: document.getElementById('keyGemini').value.trim(),
+        qwen: document.getElementById('keyQwen').value.trim()
       };
 
       if (!keys[provider]) return alert(`❌ Укажите ключ для ${provider.toUpperCase()}`);
-      if (!url) return alert("❌ Вставьте ссылку на видео");
+      if (!url) return alert("❌ Вставьте ссылку на YouTube видео или Shorts");
 
       btn.disabled = true;
-      btn.classList.add('opacity-50');
+      btn.classList.add('opacity-50', 'pointer-events-none');
       resultContainer.classList.add('hidden');
       loader.classList.remove('hidden');
 
@@ -168,72 +324,147 @@
         loaderText.innerText = `2/2: Переписываем сценарий через ${provider.toUpperCase()}...`;
         const aiData = await callAI(provider, keys[provider], transcript);
 
-        document.getElementById('resTitle').innerText = Array.isArray(aiData.title) ? aiData.title.join(' | ') : aiData.title;
-        document.getElementById('resHook').innerText = aiData.hook;
-        document.getElementById('resScript').innerText = aiData.script;
-        document.getElementById('resSEO').innerText = aiData.seo_description;
-        document.getElementById('resTags').innerText = aiData.hashtags;
-        document.getElementById('resVisuals').innerText = aiData.visuals;
+        document.getElementById('resTitle').innerText = Array.isArray(aiData.title) ? aiData.title.join(' | ') : (aiData.title || '');
+        document.getElementById('resHook').innerText = aiData.hook || '';
+        document.getElementById('resScript').innerText = aiData.script || '';
+        document.getElementById('resSEO').innerText = aiData.seo_description || '';
+        document.getElementById('resTags').innerText = aiData.hashtags || '';
+        document.getElementById('resVisuals').innerText = aiData.visuals || '';
         
         resultContainer.classList.remove('hidden');
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
 
       } catch (err) {
-        alert("⚠️ Ошибка: " + err.message);
+        let msg = err.message || "Неизвестная ошибка";
+        alert("⚠️ " + msg);
       } finally {
         loader.classList.add('hidden');
         btn.disabled = false;
-        btn.classList.remove('opacity-50');
+        btn.classList.remove('opacity-50', 'pointer-events-none');
       }
     }
 
     async function callAI(provider, key, text) {
-      const prompt = `Ты профи по контенту на YouTube. Перепиши этот сценарий своими словами, сохранив быструю динамику для удержания.
-Формат ответа СТРОГО в JSON (без лишнего текста и маркдауна):
+      const prompt = `Ты ведущий эксперт по вирусному контенту для YouTube и Shorts. Перепиши данный сценарий своими словами, сохранив динамику, ритм и высокое удержание внимания.
+Формат ответа СТРОГО в JSON без лишнего текста, комментариев и без кодовых блоков markdown:
 {
-  "title": "3 варианта заголовка",
+  "title": "3 цепляющих варианта заголовка",
   "hook": "Мощный хук для первых 3 секунд",
-  "script": "Полный текст нового сценария (короткие абзацы)",
-  "visuals": "Идеи для B-roll кадров",
-  "seo_description": "SEO описание",
-  "hashtags": "#тег1 #тег2"
+  "script": "Полный текст нового сценария (динамичные короткие абзацы)",
+  "visuals": "Идеи для B-roll кадров и визуального ряда",
+  "seo_description": "SEO оптимизированное описание",
+  "hashtags": "#тег1 #тег2 #тег3"
 }`;
 
       let endpoint, headers, body;
 
       if (provider === 'gemini') {
-        endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${key}`;
+        const geminiModel = document.getElementById('modelGemini').value || 'gemini-1.5-flash';
+        endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${key}`;
         headers = { "Content-Type": "application/json" };
         body = {
-          contents: [{ role: "user", parts: [{ text: prompt + "\n\nИсходник:\n" + text }] }],
+          contents: [{ role: "user", parts: [{ text: prompt + "\n\nИсходник видео:\n" + text }] }],
           generationConfig: { responseMimeType: "application/json" }
         };
-      } else {
-        endpoint = provider === 'qwen' 
-          ? "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" 
-          : "https://api.deepseek.com/chat/completions";
-        
-        headers = { "Content-Type": "application/json", "Authorization": `Bearer ${key}` };
+      } else if (provider === 'deepseek') {
+        let baseUrl = document.getElementById('baseDeepseek').value.trim() || 'https://api.deepseek.com/v1';
+        baseUrl = baseUrl.replace(/\/+$/, '');
+        endpoint = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
+
+        const model = document.getElementById('modelDeepseek').value || 'deepseek-chat';
+        headers = {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${key}`
+        };
         body = {
-          model: provider === 'qwen' ? "qwen-plus" : "deepseek-chat",
+          model: model,
           messages: [
             { role: "system", content: prompt },
-            { role: "user", content: "Исходник:\n" + text }
+            { role: "user", content: "Исходник видео:\n" + text }
+          ],
+          response_format: { type: "json_object" }
+        };
+      } else {
+        // Qwen
+        const qwenModel = document.getElementById('modelQwen').value || 'qwen-plus';
+        endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+        headers = {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${key}`
+        };
+        body = {
+          model: qwenModel,
+          messages: [
+            { role: "system", content: prompt },
+            { role: "user", content: "Исходник видео:\n" + text }
           ],
           response_format: { type: "json_object" }
         };
       }
 
-      const res = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify(body) });
-      const rawData = await res.json();
+      let rawData;
+      // Если сайт открыт локально через server.py — проксируем через бэкенд, исключая проблемы CORS
+      if (isLocalServer) {
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint, headers, body })
+          });
+          rawData = await res.json();
+          if (!res.ok) throw new Error(rawData.error?.message || "Ошибка API сервера");
+        } catch (localErr) {
+          throw new Error("Ошибка локального прокси: " + localErr.message);
+        }
+      } else {
+        // Режим онлайн (GitHub Pages) — прямой запрос
+        try {
+          const res = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify(body) });
+          rawData = await res.json();
+          if (!res.ok) throw new Error(rawData.error?.message || "Ошибка API");
+        } catch (fetchErr) {
+          const urlOrigin = new URL(endpoint).origin;
+          if (fetchErr.message && (fetchErr.message.includes('fetch') || fetchErr.message.includes('CORS') || fetchErr.message.includes('Failed to fetch'))) {
+            throw new Error(`Браузер заблокировал прямой запрос к ${urlOrigin} (CORS).\n\n💡 Решение:\n1) Если используете AI STAR (${urlOrigin}) — скачайте репозиторий и запустите run.bat (python server.py), там встроен обход CORS.\n2) Либо используйте бесплатный ключ Google Gemini (он работает прямо в браузере без ограничений).`);
+          }
+          throw fetchErr;
+        }
+      }
 
-      if (!res.ok) throw new Error(rawData.error?.message || "Ошибка API");
+      // Извлечение текстового контента
+      let contentStr = '';
+      if (provider === 'gemini') {
+        contentStr = rawData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      } else {
+        contentStr = rawData.choices?.[0]?.message?.content || '';
+      }
 
-      let contentStr = provider === 'gemini' 
-        ? rawData.candidates[0].content.parts[0].text 
-        : rawData.choices[0].message.content;
+      if (!contentStr) throw new Error("Нейросеть вернула пустой ответ");
 
-      contentStr = contentStr.replace(/```json/gi, '').replace(/```/gi, '').trim();
-      return JSON.parse(contentStr);
+      // Очистка от markdown блоков ```json ... ```
+      let cleanStr = contentStr.trim();
+      const jsonMatch = cleanStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) cleanStr = jsonMatch[1].trim();
+
+      try {
+        return JSON.parse(cleanStr);
+      } catch (parseErr) {
+        console.error("Parse error, raw response:", cleanStr);
+        throw new Error("Не удалось распарсить JSON ответ от нейросети.");
+      }
+    }
+
+    function copyBlock(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const text = el.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = event.currentTarget;
+        const span = btn.querySelector('span');
+        const oldText = span.innerText;
+        span.innerText = '✓ Скопировано!';
+        setTimeout(() => { span.innerText = oldText; }, 2000);
+      });
     }
   </script>
 </body>
