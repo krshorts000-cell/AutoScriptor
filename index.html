@@ -294,23 +294,6 @@
             </div>
           </div>
 
-          <!-- 2. Groq Cloud (Молниеносный 500+ ток/сек) -->
-          <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-orange-500/30">
-            <div class="flex items-center justify-between">
-              <label class="block text-[11px] font-bold text-orange-300">Groq Cloud (500+ токенов/сек, Free)</label>
-              <span class="text-[9px] bg-orange-500/20 text-orange-300 px-1.5 py-0.5 rounded-full font-mono">groq.com</span>
-            </div>
-            <input type="password" id="keyGroq" placeholder="gsk_..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs text-white outline-none font-mono">
-            <div>
-              <select id="modelGroq" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-xs text-slate-200 outline-none">
-                <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Топ скорость)</option>
-                <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 Distill 70B (Логика)</option>
-                <option value="mixtral-8x7b-32768">Mixtral 8x7B (Креатив)</option>
-                <option value="gemma2-9b-it">Google Gemma 2 9B</option>
-              </select>
-            </div>
-          </div>
-
           <!-- 3. Perplexity AI (Онлайн тренды с живым поиском) -->
           <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-teal-500/30">
             <div class="flex items-center justify-between">
@@ -637,7 +620,6 @@
         <select id="aiProvider" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-2.5 px-2 text-white text-xs outline-none font-semibold">
           <option value="auto_ai" selected>⚡ Автономный AI (Без ключа / 100% бесплатно)</option>
           <option value="openrouter">OpenRouter (Claude/GPT/R1)</option>
-          <option value="groq">Groq (Молниеносный 500 т/с)</option>
           <option value="perplexity">Perplexity (Онлайн-Тренды)</option>
           <option value="anthropic">Claude Direct</option>
           <option value="openaidirect">OpenAI (GPT-4o/o3)</option>
@@ -1211,7 +1193,6 @@
     function saveKeys() {
       const fields = [
         'keyOpenRouter', 'modelOpenRouter',
-        'keyGroq', 'modelGroq',
         'keyPerplexity', 'modelPerplexity',
         'keyAnthropic', 'modelAnthropic',
         'keyOpenAIDirect', 'modelOpenAIDirect',
@@ -1238,7 +1219,6 @@
     window.onload = () => {
       const fields = [
         'keyOpenRouter', 'modelOpenRouter',
-        'keyGroq', 'modelGroq',
         'keyPerplexity', 'modelPerplexity',
         'keyAnthropic', 'modelAnthropic',
         'keyOpenAIDirect', 'modelOpenAIDirect',
@@ -2551,21 +2531,7 @@ ${hook ? `Обязательно используй или сделай еще �
           ],
           response_format: { type: "json_object" }
         };
-      } else if (provider === 'groq') {
-        const model = document.getElementById('modelGroq').value || 'llama-3.3-70b-versatile';
-        endpoint = "https://api.groq.com/openai/v1/chat/completions";
-        headers = {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${key}`
-        };
-        body = {
-          model: model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
-          ],
-          response_format: { type: "json_object" }
-        };
+
       } else if (provider === 'perplexity') {
         const model = document.getElementById('modelPerplexity').value || 'sonar-pro';
         endpoint = "https://api.perplexity.ai/chat/completions";
@@ -2674,7 +2640,6 @@ ${hook ? `Обязательно используй или сделай еще �
     function getAllApiKeys() {
       return {
         openrouter: (document.getElementById('keyOpenRouter') ? document.getElementById('keyOpenRouter').value : '').trim(),
-        groq: (document.getElementById('keyGroq') ? document.getElementById('keyGroq').value : '').trim(),
         perplexity: (document.getElementById('keyPerplexity') ? document.getElementById('keyPerplexity').value : '').trim(),
         anthropic: (document.getElementById('keyAnthropic') ? document.getElementById('keyAnthropic').value : '').trim(),
         openaidirect: (document.getElementById('keyOpenAIDirect') ? document.getElementById('keyOpenAIDirect').value : '').trim(),
