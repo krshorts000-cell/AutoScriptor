@@ -720,7 +720,9 @@
             <option value="device">Встроенный / Edge (Бесплатно)</option>
           </select>
           <select id="ttsVoiceSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
-            <!-- Динамические голоса -->
+            <option value="ru_hq" selected>🇷🇺 Русский ИИ (Чистый / Студийный)</option>
+            <option value="ru_deep">🎙 Русский Глубокий (Повествователь)</option>
+            <option value="en_hq">🇺🇸 English AI Voice (Clean)</option>
           </select>
         </div>
 
@@ -3254,6 +3256,9 @@ async function callAI(provider, key, text) {
 
       const totEl = document.getElementById('timelineTotTime');
       if (totEl) totEl.innerText = formatTime(audioDuration);
+      window.capcutPhrases = capcutPhrases;
+      try { renderTimelineChips(); } catch(e){}
+      try { renderCapCutFrame(0); } catch(e){}
     }
 
     function updateTimelineCursor(time) {
