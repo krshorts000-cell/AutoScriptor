@@ -772,6 +772,139 @@
   <script>
     const isAndroid = typeof AndroidBridge !== 'undefined';
 
+    const fetchCallbacks = {};
+    window.__androidFetchCallback = (requestId, status, data, error, isBinary = false) => {
+      const cb = fetchCallbacks[requestId];
+      if (!cb) return;
+      delete fetchCallbacks[requestId];
+      if (error) {
+        cb.reject(new Error(error));
+      } else {
+        try {
+          const binFlag = isBinary || (data && (data.startsWith('data:audio') || data.startsWith('data:video') || data.startsWith('data:image')));
+          cb.resolve({
+            status: status,
+            ok: status >= 200 && status < 300,
+            isBinary: binFlag,
+            dataUrl: binFlag ? data : null,
+            json: async () => JSON.parse(data),
+            text: async () => data
+          });
+        } catch (e) {
+          cb.reject(e);
+        }
+      }
+    };
+
+    function switchApiTab(tab) {
+      ['text', 'audio', 'video'].forEach(t => {
+        const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        const content = document.getElementById('tabContent' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (!btn || !content) return;
+        if (t === tab) {
+          btn.classList.add('active', 'text-white');
+          btn.classList.remove('text-slate-400');
+          content.classList.remove('hidden');
+        } else {
+          btn.classList.remove('active', 'text-white');
+          btn.classList.add('text-slate-400');
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    function toggleApiSettings() {
+      const content = document.getElementById('settingsContent');
+      const chevron = document.getElementById('settingsChevron');
+      if (!content) return;
+      content.classList.toggle('hidden');
+      if (chevron) chevron.classList.toggle('rotate-180');
+    }
+
+    function handleDeepseekKeyChange(showBadge = true) {
+      const key = (document.getElementById('keyDeepseek') ? document.getElementById('keyDeepseek').value : '').trim();
+      const baseEl = document.getElementById('baseDeepseek');
+      const modelEl = document.getElementById('modelDeepseek');
+      const badge = document.getElementById('starimgBadge');
+      if (!baseEl || !modelEl || !badge) return;
+
+      if (key.startsWith('sk-star-')) {
+        badge.classList.remove('hidden');
+        if (!baseEl.value || baseEl.value.includes('api.deepseek.com')) {
+          baseEl.value = 'https://ai.starimg.ru/v1';
+        }
+        if (modelEl.value === 'deepseek-chat') {
+          modelEl.value = 'deepseek-v4-pro';
+        }
+      } else {
+        badge.classList.add('hidden');
+        if (baseEl.value === 'https://ai.starimg.ru/v1') {
+          baseEl.value = 'https://api.deepseek.com/v1';
+        }
+      }
+    }
+
+    function saveKeys() {
+      const fields = [
+        'keyOpenRouter', 'modelOpenRouter',
+        'keyGroq', 'modelGroq',
+        'keyPerplexity', 'modelPerplexity',
+        'keyAnthropic', 'modelAnthropic',
+        'keyOpenAIDirect', 'modelOpenAIDirect',
+        'keyXai', 'modelXai',
+        'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
+        'keyGemini', 'modelGemini',
+        'keyElevenLabs', 'voiceElevenLabs', 'customVoiceElevenLabs',
+        'keyOpenAI', 'voiceOpenAI', 'modelOpenAITts',
+        'keyCartesia', 'voiceCartesia',
+        'keyFal', 'modelFal',
+        'keyReplicate', 'modelReplicate',
+        'keyRunway', 'modelRunway',
+        'aiProvider', 'ttsEngine',
+        'capcutStyleSelect', 'capcutColorSelect', 'capcutBgmSelect',
+        'trendRegion', 'trendCategory', 'trendFocus'
+      ];
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) localStorage.setItem(id, el.value.trim());
+      });
+      if (isAndroid) AndroidBridge.showToast("✅ Настройки сохранены"); else alert("✅ Настройки сохранены");
+    }
+
+    window.onload = () => {
+      const fields = [
+        'keyOpenRouter', 'modelOpenRouter',
+        'keyGroq', 'modelGroq',
+        'keyPerplexity', 'modelPerplexity',
+        'keyAnthropic', 'modelAnthropic',
+        'keyOpenAIDirect', 'modelOpenAIDirect',
+        'keyXai', 'modelXai',
+        'keyDeepseek', 'baseDeepseek', 'modelDeepseek',
+        'keyGemini', 'modelGemini',
+        'keyElevenLabs', 'voiceElevenLabs', 'customVoiceElevenLabs',
+        'keyOpenAI', 'voiceOpenAI', 'modelOpenAITts',
+        'keyCartesia', 'voiceCartesia',
+        'keyFal', 'modelFal',
+        'keyReplicate', 'modelReplicate',
+        'keyRunway', 'modelRunway',
+        'aiProvider', 'ttsEngine',
+        'capcutStyleSelect', 'capcutColorSelect', 'capcutBgmSelect',
+        'trendRegion', 'trendCategory', 'trendFocus'
+      ];
+      
+      fields.forEach(id => {
+        const val = localStorage.getItem(id);
+        const el = document.getElementById(id);
+        if (val && el) el.value = val;
+      });
+
+      handleDeepseekKeyChange(false);
+      updateTtsEngineUI();
+      updateCapCutStyle();
+      loadPresetTrends('all');
+    };
+
+
     // ==============================================
     // 🔥 ДАННЫЕ И ФУНКЦИИ РАДАРА НИШ & ТРЕНДОВ YOUTUBE
     // ==============================================
