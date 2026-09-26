@@ -635,6 +635,7 @@
 
       <div class="grid grid-cols-3 gap-2">
         <select id="aiProvider" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-2.5 px-2 text-white text-xs outline-none font-semibold">
+          <option value="auto_ai" selected>⚡ Автономный AI (Без ключа / 100% бесплатно)</option>
           <option value="openrouter">OpenRouter (Claude/GPT/R1)</option>
           <option value="groq">Groq (Молниеносный 500 т/с)</option>
           <option value="perplexity">Perplexity (Онлайн-Тренды)</option>
@@ -711,6 +712,8 @@
 
         <div class="grid grid-cols-2 gap-2">
           <select id="ttsEngine" onchange="updateTtsEngineUI()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+            <option value="free" selected>⚡ Бесплатный ИИ-Голос (Google HQ / Без ключа)</option>
+            <option value="device">🔊 Системный голос устройства (Android/Web)</option>
             <option value="elevenlabs">ElevenLabs (HD Голос)</option>
             <option value="openai">OpenAI Audio TTS</option>
             <option value="cartesia">Cartesia Sonic (<100ms)</option>
@@ -754,7 +757,9 @@
         <div class="relative max-w-[275px] sm:max-w-[310px] mx-auto aspect-[9/16] phone-mockup overflow-hidden border-2 border-indigo-500/40 bg-black flex flex-col justify-between p-4 select-none">
           
           <!-- Фоновый слой (Анимированный градиент или видео) -->
-          <div id="capcutBgLayer" class="absolute inset-0 bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-900 punch-zoom transition-transform duration-700"></div>
+          <div id="capcutBgLayer" class="absolute inset-0 bg-black overflow-hidden punch-zoom transition-transform duration-700">
+            <canvas id="capcutBgCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+          </div>
           <video id="capcutBgVideo" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none" loop playsinline muted></video>
           <img id="capcutBgImage" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none">
           <div id="capcutVignette" class="absolute inset-0 vignette-layer pointer-events-none transition-opacity duration-300"></div>
@@ -1773,8 +1778,35 @@
       renderNiches(currentNichesList);
     }
 
+    
+    let ambientBgRaf = null;
+    function startAmbientPhoneBg() {
+      function loop(now) {
+        if (!isCapcutPlaying) {
+          const phoneBgCanvas = document.getElementById('capcutBgCanvas');
+          const bgVideo = document.getElementById('capcutBgVideo');
+          const bgImage = document.getElementById('capcutBgImage');
+          const isCustomMedia = (bgVideo && !bgVideo.classList.contains('hidden')) || (bgImage && !bgImage.classList.contains('hidden'));
+          if (phoneBgCanvas && !isCustomMedia) {
+            if (phoneBgCanvas.width !== phoneBgCanvas.clientWidth || phoneBgCanvas.height !== phoneBgCanvas.clientHeight) {
+              phoneBgCanvas.width = phoneBgCanvas.clientWidth || 320;
+              phoneBgCanvas.height = phoneBgCanvas.clientHeight || 568;
+            }
+            const pCtx = phoneBgCanvas.getContext('2d');
+            const curBg = document.getElementById('capcutBgSelect')?.value || 'cyber';
+            drawAnimatedBackground(pCtx, phoneBgCanvas.width, phoneBgCanvas.height, now / 1000, curBg);
+          }
+        }
+        ambientBgRaf = requestAnimationFrame(loop);
+      }
+      if (!ambientBgRaf) ambientBgRaf = requestAnimationFrame(loop);
+    }
+
+
     document.addEventListener("DOMContentLoaded", function() {
       loadPresetTrends("all");
+      updateTtsEngineUI();
+      startAmbientPhoneBg();
     });
 
     function renderNiches(niches) {
@@ -2119,12 +2151,24 @@ ${hook ? `Обязательно используй или сделай еще �
     // 🎙️ ГОЛОСА И UI ОЗВУЧКИ
     // ==============================================
     function updateTtsEngineUI() {
-      const engine = document.getElementById('ttsEngine')?.value || 'elevenlabs';
+      const engine = document.getElementById('ttsEngine')?.value || 'free';
       const select = document.getElementById('ttsVoiceSelect');
       if (!select) return;
       select.innerHTML = '';
 
-      if (engine === 'elevenlabs') {
+      if (engine === 'free') {
+        const voices = [
+          { id: 'ru_hq', name: '🇷🇺 Русский ИИ (Чистый / Студийный)' },
+          { id: 'ru_deep', name: '🎙 Русский Глубокий (Повествователь)' },
+          { id: 'en_hq', name: '🇺🇸 English AI Voice (Clean)' }
+        ];
+        voices.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.id;
+          opt.innerText = v.name;
+          select.appendChild(opt);
+        });
+      } else if (engine === 'elevenlabs') {
         const voices = [
           { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (Глубокий мужской)' },
           { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel (Спокойный женский)' },
@@ -2173,6 +2217,182 @@ ${hook ? `Обязательно используй или сделай еще �
       }
     }
 
+    
+    // ==============================================
+    // ⚡ АВТОНОМНЫЙ ГЕНЕРАТОР ВИРУСНЫХ СЦЕНАРИЕВ 9:16 (БЕЗ API-КЛЮЧА)
+    // ==============================================
+    function generateOfflineViralScript(topicInput, customHook = null) {
+      const topic = (topicInput || "Удивительные факты").trim();
+      const topicLower = topic.toLowerCase();
+
+      // Определяем тематику для максимального CTR и вовлечения
+      let nicheType = 'facts';
+      if (/психол|манипул|мозг|мышлени|люд|отношен|харизм|мысл/i.test(topicLower)) nicheType = 'psychology';
+      else if (/деньг|богат|крипт|миллион|бизнес|финанс|заработ|акци/i.test(topicLower)) nicheType = 'finance';
+      else if (/космос|вселенн|марс|планет|черн.*дыр|галактик|звезд/i.test(topicLower)) nicheType = 'space';
+      else if (/тело|здоров|сон|мозг|привычк|еда|питани|спорт|биохак/i.test(topicLower)) nicheType = 'health';
+      else if (/нейросет|ии|технолог|робот|future|ai|chatgpt/i.test(topicLower)) nicheType = 'tech';
+      else if (/мистик|тайн|секрет|загадк|страш|ужас|нло|теория/i.test(topicLower)) nicheType = 'mystery';
+
+      const databases = {
+        psychology: {
+          hooks: [
+            customHook || `Никогда не делай этого, если не хочешь, чтобы тобой манипулировали!`,
+            `Этот психологический трюк заставит любого человека уважать тебя за 3 секунды.`,
+            `90% людей даже не подозревают, как их мозг ежедневно обманывают...`
+          ],
+          titles: [
+            `ЭТОТ ТРЮК ЛОМАЕТ МОЗГ 😱 | Психология Влияния`,
+            `КАК ЧИТАТЬ ЛЮДЕЙ КАК ОТКРЫТУЮ КНИГУ 🧠`,
+            `НИКОГДА НЕ ДЕЛАЙ ЭТОГО ПРИ ОБЩЕНИИ ❌`
+          ],
+          scripts: [
+            `Если ты смотришь собеседнику прямо в левый глаз во время паузы — его мозг моментально начинает нервничать! Запомни этот закон: тот, кто молчит первым, проигрывает диалог. Но если в этот момент ты слегка наклонишь голову вправо, человек подсознательно начнет соглашаться со всем, что ты скажешь дальше! Попробуй это прямо сегодня и напиши в комментариях, сработало ли!`,
+            `Секретный трюк спецслужб, который работает безотказно: если тебе врут — просто не отвечай ни слова и не отводи взгляд. Через четыре секунды тишины мозг лжеца запаникует и он сам выдаст всю правду! Проверь это на друзьях и подпишись, чтобы знать все секреты психологии!`
+          ],
+          visuals: `[0-3s: Резкий зум на зрачок глаза, вспышка, звук Whoosh] [3-8s: Анимированная схема мозга, неоновый красный контур] [8-15s: Демонстрация диалога двух силуэтов, субтитры по центру] [15-22s: Крупный таймер 4 секунды, пульсация, призыв подписаться]`,
+          hashtags: `#психология #манипуляции #мозг #факты #саморазвитие #shorts #тренды`,
+          seo: `Секретные психологические приёмы и трюки влияния на людей. Как защититься от манипуляций и читать жесты человека за секунды.`
+        },
+        finance: {
+          hooks: [
+            customHook || `Вот почему 99% людей никогда не станут богатыми, даже работая 24/7!`,
+            `Секретное правило Уоррена Баффета, которое изменит твой кошелек навсегда.`,
+            `Ты теряешь деньги прямо сейчас, пока спишь — вот главная причина!`
+          ],
+          titles: [
+            `ПОЧЕМУ ТЫ ВСЁ ЕЩЁ НЕ БОГАТ? 💸 Секрет 1%`,
+            `ЭТОТ ЗАКОН ДЕНЕГ СКРЫВАЛИ 50 ЛЕТ 🤐`,
+            `3 ВЕЩИ, КОТОРЫЕ УБИВАЮТ ТВОЙ БЮДЖЕТ ❌`
+          ],
+          scripts: [
+            `Бедные люди продают своё время за деньги. Богатые покупают активы, которые работают за них! Если твой единственный источник дохода — это твоя зарплата, ты находишься ровно в одном шаге от банкротства! Первое: откладывай минимум 10% до любых расходов. Второе: вкладывай в то, что приносит сложный процент. Напиши в комментариях, сколько источников дохода у тебя сейчас? И жми подписку!`,
+            `Самая фатальная финансовая ошибка, которую совершают миллионы: покупка пассивов под видом активов! Новая машина забирает деньги каждый месяц. Акции и недвижимость кладут деньги тебе в карман. Выбор за тобой! Подпишись, чтобы научиться финансовой свободе!`
+          ],
+          visuals: `[0-3s: Взрыв золотых монет, резкий зум графиков, звук Bass Drop] [3-8s: Сравнение пути бедного и богатого мышления, неоновые стрелки] [8-15s: Анимированная формула сложного процента] [15-22s: Кнопка подписки с золотым свечением]`,
+          hashtags: `#деньги #бизнес #финансы #инвестиции #богатство #крипта #shorts`,
+          seo: `Как мыслят миллионеры и почему бедные остаются бедными. Главные правила инвестиций и финансовой грамотности для YouTube Shorts.`
+        },
+        space: {
+          hooks: [
+            customHook || `Ученые только что зафиксировали в глубинах космоса сигнал, который не должен существовать!`,
+            `То, что произойдет с тобой, если ты упадешь в Черную Дыру, пугает до мурашек...`,
+            `Мы нашли планету из чистого алмаза, но приземлиться туда — чистое самоубийство!`
+          ],
+          titles: [
+            `УЧЕНЫЕ В ШОКЕ ОТ ЭТОЙ НАХОДКИ 🌌 Космос`,
+            `ЧТО НА САМОМ ДЕЛЕ ВНУТРИ ЧЕРНОЙ ДЫРЫ? 🕳️`,
+            `СТРАШНАЯ ТАЙНА ВСЕЛЕННОЙ, О КОТОРОЙ МОЛЧАТ 😱`
+          ],
+          scripts: [
+            `Что будет, если ты упадешь в Черную Дыру? Во-первых, гравитация у твоих ног будет в миллиарды раз сильнее, чем у головы! Твое тело растянется в тончайшую нить — физики называют это спагеттификацией! Но самое жуткое: со стороны покажется, что ты застыл на краю горизонта событий навсегда! Напиши, веришь ли ты в инопланетную жизнь? И жми ракету в комментариях!`,
+            `В созвездии Рака находится планета 55 Рака e, которая целиком состоит из чистого графита и сверкающих алмазов! Её стоимость превышает всю экономику Земли в триллионы раз! Но температура там 2000 градусов и идут дожди из лавы. Подпишись, чтобы узнать больше тайн космоса!`
+          ],
+          visuals: `[0-3s: Анимация космической сингулярности, черная дыра искривляет свет, звук Riser] [3-8s: Схема спагеттификации в 3D пространстве] [8-15s: Леденящие кадры горизонта событий, зеленые субтитры] [15-22s: Кадр расширяющейся галактики, призыв подписаться]`,
+          hashtags: `#космос #вселенная #наука #чернаядыра #факты #астрономия #shorts`,
+          seo: `Удивительные загадки и страшные тайны Вселенной. Что происходит внутри черных дыр и какие планеты скрывает космос.`
+        },
+        health: {
+          hooks: [
+            customHook || `Если ты выпьешь стакан холодной воды сразу после пробуждения — вот что произойдет с твоим телом!`,
+            `3 привычки перед сном, которые уничтожают твой тестостерон и молодость!`,
+            `Врачи скрывают этот простой способ перезагрузить энергию за 60 секунд.`
+          ],
+          titles: [
+            `НИКОГДА НЕ ПЕЙ ЭТО УТРОМ ❌ Ошибка 90% людей`,
+            `КАК ПЕРЕЗАГРУЗИТЬ ОРГАНИЗМ ЗА 60 СЕКУНД ⚡`,
+            `ЭТА ПРИВЫЧКА УБИВАЕТ ТВОЙ СОН И ЭНЕРГИЮ 😴`
+          ],
+          scripts: [
+            `Твой организм теряет почти пол-литра воды за ночь во время дыхания! Когда ты просыпаешься, кровь становится гуще, а мозг работает всего на 60% мощности. Если вместо кофе выпить стакан теплой воды с щепоткой соли и лимоном — метаболизм мгновенно ускоряется на 30%! Попробуй завтра утром и почувствуй разницу. Напиши в комментариях, сколько часов ты спал сегодня? И подпишись!`,
+            `Если ты залипаешь в телефон за 30 минут до сна — синий свет полностью блокирует выработку мелатонина! Твой мозг думает, что на дворе полдень. В итоге ты просыпаешься разбитым даже после 9 часов сна. Убери экран за час до сна и ты не узнаешь свою энергию! Подпишись на канал здоровья!`
+          ],
+          visuals: `[0-3s: Быстрый зум на стакан воды с лимоном, звук бульканья] [3-8s: 3D визуализация кровотока и сосудов] [8-15s: Таймер метаболизма +30%, неоновые цифры] [15-22s: Шкала энергии на 100%, призыв к подписке]`,
+          hashtags: `#здоровье #биохакинг #тело #энергия #привычки #сон #shorts`,
+          seo: `Секреты биохакинга и утренних ритуалов. Как повысить уровень энергии, восстановить глубокий сон и перезапустить метаболизм.`
+        },
+        tech: {
+          hooks: [
+            customHook || `Нейросети только что научились делать то, что лишит работы 80% людей уже к концу года!`,
+            `Эти 3 бесплатные нейросети заменят тебе целую команду маркетологов и дизайнеров!`,
+            `Искусственный Интеллект создал вирусный Shorts за 15 секунд — вот как это повторить.`
+          ],
+          titles: [
+            `НЕЙРОСЕТИ ЗАБЕРУТ ТВОЮ РАБОТУ? 🤖 Шок 2026`,
+            `3 БЕСПЛАТНЫХ ИИ, О КОТОРЫХ НЕ ЗНАЮТ 99% 🔥`,
+            `КАК ЗАРАБОТАТЬ НА НЕЙРОСЕТЯХ С НУЛЯ 💻`
+          ],
+          scripts: [
+            `Пока ты сомневаешься, школьники зарабатывают тысячи долларов на генерации контента через ИИ! Первая нейросеть пишет вирусный сценарий за 5 секунд. Вторая озвучивает реалистичным человеческим голосом. А третья монтирует готовое 9:16 видео с субтитрами! Тебе остается только выложить его. Напиши слово ИИ в комментариях, и я поделюсь секретным списком промптов! И жми подписаться!`,
+            `Искусственный интеллект эволюционирует быстрее, чем когда-либо в истории человечества! То, на что раньше уходили недели работы команды, сейчас делается одним нажатием кнопки. Те, кто освоит эти инструменты сегодня, станут лидерами завтра! Подпишись, чтобы быть на шаг впереди!`
+          ],
+          visuals: `[0-3s: Голографический терминал ИИ, глитч-эффект, звук Glitch] [3-8s: Быстрая смена интерфейсов топовых нейросетей] [8-15s: Кадры автоматического монтажа видео в 9:16] [15-22s: Анимированная кнопка комментария и подписки]`,
+          hashtags: `#нейросети #ии #технологии #chatgpt #будущее #заработок #shorts`,
+          seo: `Тренды искусственного интеллекта и лучших нейросетей 2026 года. Как использовать ИИ для создания вирусного контента и заработка.`
+        },
+        mystery: {
+          hooks: [
+            customHook || `Загадка, которую не могут разгадать лучшие криптографы мира уже более 100 лет!`,
+            `Это самое жуткое совпадение в истории, от которого стынет кровь...`,
+            `То, что нашли на дне Марианской впадины, засекретили военные!`
+          ],
+          titles: [
+            `САМОЕ ЖУТКОЕ СОВПАДЕНИЕ В ИСТОРИИ 😱`,
+            `ЧТО СКРЫВАЮТ НА ДНЕ ОКЕАНА? 🌊 Секретно`,
+            `ЭТУ ТАЙНУ НЕ МОГУТ РАЗГАДАТЬ 100 ЛЕТ 🤐`
+          ],
+          scripts: [
+            `В 1898 году писатель Морган Робертсон выпустил книгу о гигантском непотопляемом корабле под названием Титан. По сюжету корабль столкнулся с айсбергом апрельской ночью и затонул из-за нехватки шлюпок! Ровно через 14 лет настоящий Титаник повторил эту историю с точностью до метра и секунды! Совпадение или путешествие во времени? Напиши своё мнение в комментариях и подпишись на канал тайн!`,
+            `На глубине 11 километров в Марианской впадине гидролокаторы зафиксировали странный металлический скрежет и колоссальное движение объекта размером с небоскреб! Запись звука сразу засекретили. Что обитает на дне бездны? Подпишись, чтобы узнать продолжение!`
+          ],
+          visuals: `[0-3s: Глубоководный мрак, луч прожектора прорезает тьму, звук Sub Bass Drop] [3-8s: Исторические архивные фото книги 1898 года] [8-15s: Кадр крушения Титаника в ледяной воде, тревожные титры] [15-22s: Вопросительный знак с неоновым свечением, призыв подписаться]`,
+          hashtags: `#мистика #тайны #история #загадки #титаник #факты #shorts`,
+          seo: `Жуткие исторические совпадения и неразгаданные тайны мира. Мистические события, которые невозможно объяснить логикой.`
+        },
+        facts: {
+          hooks: [
+            customHook || `Факт, который разрушит твое представление о мире всего за 20 секунд!`,
+            `Ты ни за что не поверишь, но это абсолютно доказанный научный факт...`,
+            `3 сумасшедших факта, которые кажутся полным бредом, пока ты их не проверишь!`
+          ],
+          titles: [
+            `ФАКТ, КОТОРЫЙ СЛОМАЕТ ТВОЙ МОЗГ 🤯`,
+            `ТЫ НЕ ПОВЕРИШЬ, НО ЭТО ПРАВДА! 😱 Топ Фактов`,
+            `3 ФАКТА, О КОТОРЫХ ТЕБЕ НЕ ГОВОРИЛИ В ШКОЛЕ 🏫`
+          ],
+          scripts: [
+            `Знал ли ты, что на твоем смартфоне в 10 раз больше бактерий, чем на ободке унитаза?! Но это еще не всё. Если сложить обычный лист бумаги 42 раза — его толщина достигнет расстояния от Земли до Луны! А мед — единственный продукт на планете, который никогда не портится: археологи находили съедобный мед возрастом 3000 лет в гробницах фараонов! Какой факт удивил сильнее? Напиши в комменты и жми подписку!`,
+            `Когда ты смотришь на звезды на ночном небе — ты буквально смотришь в далекое прошлое! Свет от некоторых звезд летел к нам миллионы лет, и многие из них уже давно взорвались и погибли. Мы видим Вселенную такой, какой она была задолго до появления человечества! Подпишись, чтобы каждый день узнавать невероятные вещи!`
+          ],
+          visuals: `[0-3s: Резкий всплеск частиц, макро-съемка экрана смартфона, звук Whoosh] [3-8s: Анимация складывания листа бумаги до орбиты Луны] [8-15s: Древние пирамиды и светящийся кувшин меда, золотые субтитры] [15-22s: Кнопка подписки с пульсирующим огненным эффектом]`,
+          hashtags: `#факты #топфакты #наука #интересно #удивительно #shorts #тренды`,
+          seo: `Шокирующие и невероятные научные факты, о которых мало кто знает. Топ удивительных открытий для любителей эрудиции и YouTube Shorts.`
+        }
+      };
+
+      const selectedNiche = databases[nicheType] || databases.facts;
+      const hookPick = customHook || selectedNiche.hooks[Math.floor(Math.random() * selectedNiche.hooks.length)];
+      let scriptPick = selectedNiche.scripts[Math.floor(Math.random() * selectedNiche.scripts.length)];
+      
+      // Персонализируем под конкретную тему пользователя, если она задана
+      if (topic && topic.length > 3 && !/fals|true|http|www/i.test(topic)) {
+        if (!scriptPick.toLowerCase().includes(topicLower)) {
+          scriptPick = `${hookPick} Тема сегодня: ${topic}! ` + scriptPick;
+        }
+      }
+
+      return {
+        title: selectedNiche.titles,
+        hook: hookPick,
+        script: scriptPick,
+        visuals: selectedNiche.visuals,
+        hashtags: selectedNiche.hashtags,
+        seo_description: selectedNiche.seo,
+        video_prompt: `Hyperrealistic 9:16 cinematic vertical video, high resolution 8k, dynamic volumetric lighting, octane render, topic: ${topic}, mood: dramatic viral short`
+      };
+    }
+
+
     async function generateScript(customTopic = null, customHook = null) {
       let url = (customTopic || document.getElementById('videoUrl').value).trim();
       const provider = document.getElementById('aiProvider').value;
@@ -2183,8 +2403,11 @@ ${hook ? `Обязательно используй или сделай еще �
 
       const keys = getAllApiKeys();
 
-      if (!keys[provider]) {
-        const msg = `❌ Укажите API ключ для ${provider.toUpperCase()}`;
+      // Если выбран автономный ИИ или у пользователя нет ключа для платного провайдера — запускаем автономный вирусный генератор!
+      const useOfflineAi = (provider === 'auto_ai') || (!keys[provider] && !url.startsWith('http://') && !url.startsWith('https://'));
+      
+      if (!keys[provider] && !useOfflineAi && (url.startsWith('http://') || url.startsWith('https://'))) {
+        const msg = `⚡ Для скачивания субтитров по ссылке укажите ключ для ${provider.toUpperCase()} или введите тему текстом`;
         if (isAndroid) AndroidBridge.showToast(msg); else alert(msg);
         document.getElementById('settingsContent').classList.remove('hidden');
         document.getElementById('settingsChevron').classList.add('rotate-180');
@@ -2205,7 +2428,11 @@ ${hook ? `Обязательно используй или сделай еще �
         const isUrl = url.startsWith('http://') || url.startsWith('https://');
         let aiData;
 
-        if (isUrl) {
+        if (useOfflineAi) {
+          loaderText.innerText = "⚡ Автономный ИИ анализирует вирусные тренды 9:16...";
+          await new Promise(r => setTimeout(r, 650));
+          aiData = generateOfflineViralScript(url, customHook || lastTrendHook);
+        } else if (isUrl) {
           loaderText.innerText = "1/2: Тянем текст из видео...";
           const transcript = await fetchSubtitles(url);
           loaderText.innerText = `2/2: Переписываем сценарий через ${provider.toUpperCase()}...`;
@@ -2479,6 +2706,99 @@ async function callAI(provider, key, text) {
     // ==============================================
     // 🎙 СИНТЕЗ ОЗВУЧКИ
     // ==============================================
+    
+    // ==============================================
+    // 🎙 СИНТЕЗАТОР БЕСПЛАТНОГО ИИ-ГОЛОСА (GOOGLE HQ + WEB AUDIO)
+    // ==============================================
+    async function synthesizeFreeTts(rawText) {
+      const voice = document.getElementById('ttsVoiceSelect')?.value || 'ru_hq';
+      const clean = rawText
+        .replace(/\[.*?\]/g, '')
+        .replace(/#+/g, '')
+        .replace(/[*_~`]/g, '')
+        .replace(/\(.*?\)/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const lang = voice.startsWith('en') ? 'en' : 'ru';
+      const queryText = clean.substring(0, 195);
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(queryText)}`;
+      const player = document.getElementById('ttsAudioPlayer');
+
+      if (isAndroid) {
+        try {
+          const res = await executeRequest(ttsUrl, 'GET', { "User-Agent": "Mozilla/5.0" }, null);
+          if (res.ok && res.dataUrl) {
+            currentAudioUrl = res.dataUrl;
+            player.src = currentAudioUrl;
+            return new Promise((resolve) => {
+              player.onloadedmetadata = () => {
+                audioDuration = player.duration || 18;
+                buildCapCutPhrases(clean, audioDuration);
+                toggleCapCutPlay();
+                AndroidBridge.showToast("🎙 Голос успешно озвучен!");
+                resolve();
+              };
+              player.onerror = () => {
+                AndroidBridge.speak(clean, 1.15);
+                audioDuration = Math.max(12, Math.round(clean.length / 14));
+                buildCapCutPhrases(clean, audioDuration);
+                toggleCapCutPlay();
+                resolve();
+              };
+              player.load();
+            });
+          }
+        } catch (e) {
+          console.warn("Android native TTS fetch error:", e);
+        }
+      }
+
+      // Web / Browser mode
+      return new Promise((resolve) => {
+        currentAudioUrl = ttsUrl;
+        player.src = currentAudioUrl;
+
+        let loaded = false;
+        player.onloadedmetadata = () => {
+          if (loaded) return;
+          loaded = true;
+          audioDuration = player.duration || 18;
+          buildCapCutPhrases(clean, audioDuration);
+          toggleCapCutPlay();
+          resolve();
+        };
+
+        player.onerror = () => {
+          if (loaded) return;
+          loaded = true;
+          console.warn("Google TTS stream fallback to Web Speech");
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(clean);
+            u.lang = lang === 'en' ? 'en-US' : 'ru-RU';
+            window.speechSynthesis.speak(u);
+          }
+          audioDuration = Math.max(12, Math.round(clean.length / 14));
+          buildCapCutPhrases(clean, audioDuration);
+          toggleCapCutPlay();
+          resolve();
+        };
+
+        player.load();
+        setTimeout(() => {
+          if (!loaded) {
+            loaded = true;
+            audioDuration = Math.max(12, Math.round(clean.length / 14));
+            buildCapCutPhrases(clean, audioDuration);
+            toggleCapCutPlay();
+            resolve();
+          }
+        }, 1800);
+      });
+    }
+
+
     async function generateSpeech() {
       const scriptText = document.getElementById('resScript').innerText.trim();
       if (!scriptText) {
@@ -2489,6 +2809,21 @@ async function callAI(provider, key, text) {
       const engine = document.getElementById('ttsEngine').value;
       const btn = document.getElementById('btnGenerateSpeech');
       const oldHtml = btn.innerHTML;
+
+      if (engine === 'free') {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Синтез голоса...</span>`;
+        try {
+          await synthesizeFreeTts(scriptText);
+        } catch (e) {
+          console.error("Free TTS error:", e);
+          if (isAndroid) AndroidBridge.showToast("⚠️ " + e.message); else alert("⚠️ " + e.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = oldHtml;
+        }
+        return;
+      }
 
       if (engine === 'device') {
         if (isAndroid) {
@@ -2579,6 +2914,205 @@ async function callAI(provider, key, text) {
     // ==============================================
     let lastActivePhraseIndex = -1;
 
+    
+    // ==============================================
+    // 🌌 60FPS АНИМИРОВАННЫЙ ХОЛСТ 9:16 (MOTION GRAPHICS ENGINE)
+    // ==============================================
+    const bgParticles = {
+      crimson: Array.from({ length: 45 }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        speed: 0.15 + Math.random() * 0.35,
+        size: 2 + Math.random() * 4,
+        alpha: 0.2 + Math.random() * 0.8,
+        sway: Math.random() * Math.PI * 2
+      })),
+      matrix: Array.from({ length: 24 }, (_, i) => ({
+        x: (i + 0.5) / 24,
+        y: Math.random(),
+        speed: 0.2 + Math.random() * 0.3,
+        chars: "0101XYZ9876543210ABCDEF"
+      })),
+      gold: Array.from({ length: 28 }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        radius: 15 + Math.random() * 45,
+        speedX: (Math.random() - 0.5) * 0.04,
+        speedY: -0.05 - Math.random() * 0.1,
+        alpha: 0.15 + Math.random() * 0.45
+      }))
+    };
+
+    function drawAnimatedBackground(ctx, width, height, time, bgType) {
+      if (bgType === 'cyber') {
+        // Deep space gradient
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+        skyGrad.addColorStop(0, '#020617');
+        skyGrad.addColorStop(0.55, '#1e1b4b');
+        skyGrad.addColorStop(1, '#030712');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        const horizonY = height * 0.55;
+
+        // Retro Neon Sun
+        const sunRadius = width * 0.22;
+        const sunGrad = ctx.createRadialGradient(width / 2, horizonY - 15, 10, width / 2, horizonY - 15, sunRadius);
+        sunGrad.addColorStop(0, '#fde047');
+        sunGrad.addColorStop(0.6, '#ec4899');
+        sunGrad.addColorStop(1, 'transparent');
+        ctx.fillStyle = sunGrad;
+        ctx.beginPath();
+        ctx.arc(width / 2, horizonY - 15, sunRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Horizontal sun slits
+        ctx.fillStyle = '#0f172a';
+        for (let i = 1; i <= 6; i++) {
+          const sy = horizonY - 15 + (i * 9);
+          ctx.fillRect(width / 2 - sunRadius, sy, sunRadius * 2, 2.5);
+        }
+
+        // 3D Perspective Grid
+        ctx.save();
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.45)';
+        ctx.lineWidth = 2;
+
+        // Perspective vertical lines
+        const vCount = 14;
+        for (let i = -vCount; i <= vCount; i++) {
+          const xBottom = width / 2 + (i * width * 0.14);
+          ctx.beginPath();
+          ctx.moveTo(width / 2, horizonY);
+          ctx.lineTo(xBottom, height);
+          ctx.stroke();
+        }
+
+        // Moving horizontal grid lines
+        const hCount = 10;
+        const speed = (time * 0.65) % 1.0;
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+        for (let i = 0; i < hCount; i++) {
+          const progress = ((i / hCount) + speed) % 1.0;
+          const y = horizonY + Math.pow(progress, 2.5) * (height - horizonY);
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+      } else if (bgType === 'crimson') {
+        // Dark crimson radial glow
+        const rad = ctx.createRadialGradient(width / 2, height * 0.45, 40, width / 2, height / 2, width * 0.85);
+        const pulse = Math.sin(time * 2.5) * 0.08;
+        rad.addColorStop(0, `rgba(185, 28, 28, ${0.45 + pulse})`);
+        rad.addColorStop(0.7, '#450a0a');
+        rad.addColorStop(1, '#050202');
+        ctx.fillStyle = rad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Rising embers
+        ctx.save();
+        bgParticles.crimson.forEach(p => {
+          p.y -= p.speed * 0.015;
+          if (p.y < -0.05) { p.y = 1.05; p.x = Math.random(); }
+          const curX = (p.x * width) + Math.sin(time * 2 + p.sway) * 18;
+          const curY = p.y * height;
+
+          const pGrad = ctx.createRadialGradient(curX, curY, 0, curX, curY, p.size * 2);
+          pGrad.addColorStop(0, `rgba(254, 240, 138, ${p.alpha})`);
+          pGrad.addColorStop(0.4, `rgba(239, 68, 68, ${p.alpha * 0.7})`);
+          pGrad.addColorStop(1, 'rgba(0,0,0,0)');
+
+          ctx.fillStyle = pGrad;
+          ctx.beginPath();
+          ctx.arc(curX, curY, p.size * 2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
+
+      } else if (bgType === 'matrix') {
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.35)';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.font = 'bold 16px monospace';
+        bgParticles.matrix.forEach(col => {
+          col.y += col.speed * 0.015;
+          if (col.y > 1.1) col.y = -0.1;
+          const x = col.x * width;
+          const y = col.y * height;
+
+          // Head character (bright white)
+          ctx.fillStyle = '#f0fdf4';
+          ctx.shadowColor = '#22c55e';
+          ctx.shadowBlur = 10;
+          ctx.fillText(col.chars[Math.floor((time * 10) % col.chars.length)], x, y);
+
+          // Trailing green glyphs
+          ctx.shadowBlur = 0;
+          for (let k = 1; k <= 7; k++) {
+            const trailY = y - (k * 18);
+            if (trailY > 0 && trailY < height) {
+              const alpha = Math.max(0, 1 - (k * 0.14));
+              ctx.fillStyle = `rgba(34, 197, 94, ${alpha})`;
+              ctx.fillText(col.chars[(k * 3) % col.chars.length], x, trailY);
+            }
+          }
+        });
+
+      } else if (bgType === 'gold') {
+        const rad = ctx.createRadialGradient(width / 2, height * 0.5, 50, width / 2, height / 2, width * 0.9);
+        rad.addColorStop(0, '#78350f');
+        rad.addColorStop(0.65, '#291305');
+        rad.addColorStop(1, '#050201');
+        ctx.fillStyle = rad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Floating luxury bokeh
+        ctx.save();
+        bgParticles.gold.forEach(b => {
+          b.y += b.speedY * 0.01;
+          b.x += b.speedX * 0.01;
+          if (b.y < -0.1) b.y = 1.1;
+          if (b.x < 0) b.x = 1;
+          if (b.x > 1) b.x = 0;
+
+          const cx = b.x * width;
+          const cy = b.y * height;
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, b.radius);
+          grad.addColorStop(0, `rgba(253, 224, 71, ${b.alpha * 0.5})`);
+          grad.addColorStop(0.5, `rgba(217, 119, 6, ${b.alpha * 0.25})`);
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(cx, cy, b.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
+
+      } else {
+        // Dark Cinema 9:16
+        const cinGrad = ctx.createLinearGradient(0, 0, width, height);
+        cinGrad.addColorStop(0, '#090d16');
+        cinGrad.addColorStop(0.5, '#1e293b');
+        cinGrad.addColorStop(1, '#020617');
+        ctx.fillStyle = cinGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Volumetric sweeping spotlight
+        const sweepX = width / 2 + Math.sin(time * 0.8) * (width * 0.35);
+        const spotGrad = ctx.createRadialGradient(sweepX, height * 0.2, 20, sweepX, height * 0.5, width * 0.75);
+        spotGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+        spotGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.06)');
+        spotGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = spotGrad;
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+
+
     function playSfx(type) {
       const toggle = document.getElementById('capcutSfxToggle');
       if (toggle && !toggle.checked) return;
@@ -2609,6 +3143,9 @@ async function callAI(provider, key, text) {
           osc.connect(filter);
           filter.connect(gain);
           gain.connect(webAudioCtx.destination);
+          if (window._exportMediaDest) {
+            try { gain.connect(window._exportMediaDest); } catch(e){}
+          }
 
           osc.start(now);
           osc.stop(now + 0.18);
@@ -2626,6 +3163,9 @@ async function callAI(provider, key, text) {
 
           osc.connect(gain);
           gain.connect(webAudioCtx.destination);
+          if (window._exportMediaDest) {
+            try { gain.connect(window._exportMediaDest); } catch(e){}
+          }
 
           osc.start(now);
           osc.stop(now + 0.09);
@@ -2643,6 +3183,9 @@ async function callAI(provider, key, text) {
 
             osc.connect(gain);
             gain.connect(webAudioCtx.destination);
+          if (window._exportMediaDest) {
+            try { gain.connect(window._exportMediaDest); } catch(e){}
+          }
 
             osc.start(now + i * 0.04);
             osc.stop(now + i * 0.04 + 0.25);
@@ -2661,6 +3204,9 @@ async function callAI(provider, key, text) {
 
           osc.connect(gain);
           gain.connect(webAudioCtx.destination);
+          if (window._exportMediaDest) {
+            try { gain.connect(window._exportMediaDest); } catch(e){}
+          }
 
           osc.start(now);
           osc.stop(now + 0.06);
@@ -3028,6 +3574,32 @@ async function callAI(provider, key, text) {
       const pct = Math.min(100, (time / Math.max(0.1, audioDuration)) * 100);
       document.getElementById('capcutProgressBar').style.width = pct + '%';
 
+      // 60FPS живой рендеринг фона на холсте смартфона
+      const phoneBgCanvas = document.getElementById('capcutBgCanvas');
+      const bgVideo = document.getElementById('capcutBgVideo');
+      const bgImage = document.getElementById('capcutBgImage');
+      const isCustomMedia = (bgVideo && !bgVideo.classList.contains('hidden')) || (bgImage && !bgImage.classList.contains('hidden'));
+      if (phoneBgCanvas && !isCustomMedia) {
+        if (phoneBgCanvas.width !== phoneBgCanvas.clientWidth || phoneBgCanvas.height !== phoneBgCanvas.clientHeight) {
+          phoneBgCanvas.width = phoneBgCanvas.clientWidth || 320;
+          phoneBgCanvas.height = phoneBgCanvas.clientHeight || 568;
+        }
+        const pCtx = phoneBgCanvas.getContext('2d');
+        const curBg = document.getElementById('capcutBgSelect')?.value || 'cyber';
+        drawAnimatedBackground(pCtx, phoneBgCanvas.width, phoneBgCanvas.height, time, curBg);
+      }
+
+      // Авто-даккинг фоновой музыки под голос (голос на переднем плане)
+      const ttsPlayer = document.getElementById('ttsAudioPlayer');
+      const isVoiceSpeaking = ttsPlayer && !ttsPlayer.paused && currentAudioUrl;
+      if (bgmGainNode && webAudioCtx) {
+        const userVol = (document.getElementById('capcutBgmVolume')?.value || 25) / 100;
+        const duckedVol = isVoiceSpeaking ? (userVol * 0.08) : (userVol * 0.22);
+        try {
+          bgmGainNode.gain.setTargetAtTime(duckedVol, webAudioCtx.currentTime, 0.1);
+        } catch(e){}
+      }
+
       if (capcutPhrases.length === 0) return;
 
       // Находим текущую фразу
@@ -3106,9 +3678,162 @@ async function callAI(provider, key, text) {
       }
     }
 
+    // ==============================================
+    // 🎧 ПРОЦЕДУРНЫЙ 16-STEP BEAT MACHINE (WEB AUDIO API)
+    // ==============================================
+    let bgmStep = 0;
+    let bgmTimer = null;
+    let bgmIsPlaying = false;
+    let noiseBuffer = null;
+
+    function getNoiseBuffer() {
+      if (noiseBuffer) return noiseBuffer;
+      if (!webAudioCtx) return null;
+      const bufferSize = webAudioCtx.sampleRate * 1.5;
+      noiseBuffer = webAudioCtx.createBuffer(1, bufferSize, webAudioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      return noiseBuffer;
+    }
+
+    function playKick(time) {
+      if (!webAudioCtx || !bgmGainNode) return;
+      const osc = webAudioCtx.createOscillator();
+      const gain = webAudioCtx.createGain();
+
+      osc.frequency.setValueAtTime(140, time);
+      osc.frequency.exponentialRampToValueAtTime(36, time + 0.22);
+
+      gain.gain.setValueAtTime(0.85, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.24);
+
+      osc.connect(gain);
+      gain.connect(bgmGainNode);
+      osc.start(time);
+      osc.stop(time + 0.25);
+    }
+
+    function playSnare(time, isLoFi = true) {
+      if (!webAudioCtx || !bgmGainNode) return;
+      const noise = getNoiseBuffer();
+      if (!noise) return;
+
+      const osc = webAudioCtx.createOscillator();
+      const oscGain = webAudioCtx.createGain();
+      osc.frequency.setValueAtTime(isLoFi ? 190 : 260, time);
+      osc.frequency.exponentialRampToValueAtTime(80, time + 0.1);
+      oscGain.gain.setValueAtTime(0.4, time);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+      osc.connect(oscGain);
+      oscGain.connect(bgmGainNode);
+      osc.start(time);
+      osc.stop(time + 0.1);
+
+      const noiseSource = webAudioCtx.createBufferSource();
+      noiseSource.buffer = noise;
+      const filter = webAudioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(isLoFi ? 1100 : 1800, time);
+      filter.Q.value = 1.2;
+
+      const noiseGain = webAudioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0.45, time);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, time + (isLoFi ? 0.16 : 0.22));
+
+      noiseSource.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(bgmGainNode);
+
+      noiseSource.start(time);
+      noiseSource.stop(time + 0.25);
+    }
+
+    function playHiHat(time, isOpen = false) {
+      if (!webAudioCtx || !bgmGainNode) return;
+      const noise = getNoiseBuffer();
+      if (!noise) return;
+
+      const noiseSource = webAudioCtx.createBufferSource();
+      noiseSource.buffer = noise;
+
+      const filter = webAudioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(7500, time);
+
+      const gain = webAudioCtx.createGain();
+      const dur = isOpen ? 0.22 : 0.045;
+      gain.gain.setValueAtTime(isOpen ? 0.25 : 0.18, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+      noiseSource.connect(filter);
+      filter.connect(gain);
+      gain.connect(bgmGainNode);
+
+      noiseSource.start(time);
+      noiseSource.stop(time + dur + 0.02);
+    }
+
+    function playChord(time, chordNotes, dur, bgmType) {
+      if (!webAudioCtx || !bgmGainNode) return;
+      chordNotes.forEach((freq, idx) => {
+        const osc = webAudioCtx.createOscillator();
+        const filter = webAudioCtx.createBiquadFilter();
+        const gain = webAudioCtx.createGain();
+
+        osc.type = bgmType === 'phonk' ? 'sawtooth' : (bgmType === 'synth' ? 'sawtooth' : 'triangle');
+        osc.frequency.setValueAtTime(freq, time);
+        osc.detune.setValueAtTime((idx - 1) * 7, time);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(bgmType === 'phonk' ? 900 : (bgmType === 'synth' ? 1400 : 650), time);
+        filter.Q.value = 1.0;
+
+        const baseVol = (bgmType === 'phonk' ? 0.14 : (bgmType === 'synth' ? 0.12 : 0.16)) / chordNotes.length;
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.linearRampToValueAtTime(baseVol, time + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(bgmGainNode);
+
+        osc.start(time);
+        osc.stop(time + dur + 0.05);
+      });
+    }
+
+    function playCowbell(time, freq) {
+      if (!webAudioCtx || !bgmGainNode) return;
+      const osc = webAudioCtx.createOscillator();
+      const filter = webAudioCtx.createBiquadFilter();
+      const gain = webAudioCtx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, time);
+
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(freq * 1.5, time);
+      filter.Q.value = 3.5;
+
+      gain.gain.setValueAtTime(0.35, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(bgmGainNode);
+
+      osc.start(time);
+      osc.stop(time + 0.2);
+    }
+
     function playBgmAudio() {
       const bgmType = document.getElementById('capcutBgmSelect')?.value || 'none';
-      if (bgmType === 'none') return;
+      if (bgmType === 'none') {
+        stopBgmAudio();
+        return;
+      }
       initWebAudio();
       if (!webAudioCtx) return;
       if (webAudioCtx.state === 'suspended') {
@@ -3118,38 +3843,76 @@ async function callAI(provider, key, text) {
       updateBgmVolume();
       stopBgmAudio();
 
-      // Создаем приятный Lo-Fi / Synth ambient аккорд
-      const baseFreq = bgmType === 'phonk' ? 110 : (bgmType === 'synth' ? 146.83 : 130.81);
-      const chord = [1.0, 1.25, 1.5]; // Мажорное/минорное трезвучие
+      bgmIsPlaying = true;
+      bgmStep = 0;
 
-      chord.forEach(ratio => {
-        const osc = webAudioCtx.createOscillator();
-        const filter = webAudioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 600; // Мягкий лоу-фай фильтр
+      const bpm = bgmType === 'phonk' ? 128 : (bgmType === 'synth' ? 116 : (bgmType === 'cinema' ? 76 : 88));
+      const stepDuration = (60 / bpm) / 4;
 
-        osc.type = bgmType === 'phonk' ? 'sawtooth' : 'triangle';
-        osc.frequency.value = baseFreq * ratio;
+      const chordProgressions = [
+        [220, 261.63, 329.63, 392],    // Am7
+        [174.61, 220, 261.63, 329.63], // Fmaj7
+        [130.81, 164.81, 196, 246.94], // Cmaj7
+        [196, 246.94, 293.66, 349.23]  // G7
+      ];
 
-        osc.connect(filter);
-        filter.connect(bgmGainNode);
-        osc.start();
-        bgmOscillators.push(osc);
-      });
+      const phonkMelody = [440, 0, 523.25, 0, 587.33, 0, 523.25, 440, 0, 392, 0, 440, 0, 523.25, 0, 0];
+      let nextNoteTime = webAudioCtx.currentTime + 0.05;
+
+      bgmTimer = setInterval(() => {
+        if (!bgmIsPlaying) return;
+
+        while (nextNoteTime < webAudioCtx.currentTime + 0.12) {
+          const s = bgmStep % 16;
+          const bar = Math.floor(bgmStep / 16) % chordProgressions.length;
+          const currentChord = chordProgressions[bar];
+
+          if (bgmType === 'lofi') {
+            if (s === 0 || s === 7 || s === 10) playKick(nextNoteTime);
+            if (s === 4 || s === 12) playSnare(nextNoteTime, true);
+            if (s % 2 === 0) playHiHat(nextNoteTime, s === 14);
+            if (s === 0) playChord(nextNoteTime, currentChord, stepDuration * 7.5, 'lofi');
+            if (s === 8) playChord(nextNoteTime, currentChord, stepDuration * 6.5, 'lofi');
+
+          } else if (bgmType === 'phonk') {
+            if (s === 0 || s === 6 || s === 10) playKick(nextNoteTime);
+            if (s === 4 || s === 12) playSnare(nextNoteTime, false);
+            playHiHat(nextNoteTime, s === 15);
+            if (phonkMelody[s] > 0) playCowbell(nextNoteTime, phonkMelody[s]);
+            if (s === 0 || s === 8) playChord(nextNoteTime, [currentChord[0] / 2], stepDuration * 6, 'phonk');
+
+          } else if (bgmType === 'synth') {
+            if (s % 4 === 0) playKick(nextNoteTime);
+            if (s === 4 || s === 12) playSnare(nextNoteTime, false);
+            if (s % 2 === 1) playHiHat(nextNoteTime, false);
+            const noteIdx = s % currentChord.length;
+            playChord(nextNoteTime, [currentChord[noteIdx]], stepDuration * 1.8, 'synth');
+
+          } else if (bgmType === 'cinema') {
+            if (s === 0) playKick(nextNoteTime);
+            if (s === 0) playChord(nextNoteTime, currentChord, stepDuration * 15, 'cinema');
+          }
+
+          nextNoteTime += stepDuration;
+          bgmStep++;
+        }
+      }, 25);
     }
 
     function stopBgmAudio() {
-      bgmOscillators.forEach(osc => {
-        try { osc.stop(); osc.disconnect(); } catch (e) {}
-      });
-      bgmOscillators = [];
+      bgmIsPlaying = false;
+      if (bgmTimer) {
+        clearInterval(bgmTimer);
+        bgmTimer = null;
+      }
+      bgmStep = 0;
     }
 
     function updateBgmVolume() {
       if (!bgmGainNode || !webAudioCtx) return;
       const vol = (document.getElementById('capcutBgmVolume')?.value || 25) / 100;
       try {
-        bgmGainNode.gain.setValueAtTime(vol * 0.15, webAudioCtx.currentTime);
+        bgmGainNode.gain.setValueAtTime(vol * 0.2, webAudioCtx.currentTime);
       } catch (e) {}
     }
 
@@ -3237,8 +4000,11 @@ async function callAI(provider, key, text) {
         const startTime = performance.now();
         const totalDur = audioDuration;
 
+        window._exportMediaDest = dest;
         function recordLoop() {
           const elapsed = (performance.now() - startTime) / 1000;
+          const progPct = Math.min(99, Math.round((elapsed / Math.max(1, totalDur)) * 100));
+          btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Рендеринг ${progPct}%...</span>`;
           
           // 1. Отрисовка фона (видео, картинка или выбранный градиент)
           const bgVideo = document.getElementById('capcutBgVideo');
@@ -3249,23 +4015,8 @@ async function callAI(provider, key, text) {
             ctx.drawImage(bgImage, 0, 0, width, height);
           } else {
             const bgVal = document.getElementById('capcutBgSelect')?.value || 'cyber';
-            const gradColors = {
-              'cyber': ['#1e1b4b', '#020617'],
-              'crimson': ['#450a0a', '#020617'],
-              'matrix': ['#052e16', '#020617'],
-              'gold': ['#451a03', '#020617'],
-              'cinema': ['#0f172a', '#000000']
-            };
-            const cols = gradColors[bgVal] || ['#1e1b4b', '#020617'];
-
-            ctx.fillStyle = cols[1];
-            ctx.fillRect(0, 0, width, height);
-
-            const radGrad = ctx.createRadialGradient(width/2, height/2, 60, width/2, height/2, width*0.9);
-            radGrad.addColorStop(0, cols[0]);
-            radGrad.addColorStop(1, cols[1]);
-            ctx.fillStyle = radGrad;
-            ctx.fillRect(0, 0, width, height);
+            // Рендерим живой 60FPS анимированный фон в высоком разрешении 9:16
+            drawAnimatedBackground(ctx, width, height, elapsed, bgVal);
           }
 
           // 2. Киновиньетка
@@ -3353,6 +4104,7 @@ async function callAI(provider, key, text) {
         if (isAndroid) AndroidBridge.showToast("⚠️ " + (err.message || "Ошибка экспорта"));
         else alert("⚠️ " + (err.message || "Ошибка экспорта"));
       } finally {
+        window._exportMediaDest = null;
         btn.disabled = false;
         btn.classList.remove('opacity-75');
         btn.innerHTML = originalHtml;
