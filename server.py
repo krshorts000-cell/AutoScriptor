@@ -47,27 +47,75 @@ def get_audio_duration(audio_path):
         return h * 3600 + m * 60 + s
     return 5.0
 
-def create_subtitles(text, duration, ass_path):
-    """Генерирует динамичные субтитры в формате ASS со стилем виральных Shorts"""
+def create_subtitles(text, duration, ass_path, style='hormozi', color='yellow'):
+    """Генерирует виральные караоке-субтитры в стиле CapCut (Hormozi, MrBeast, Cyber) с подсветкой каждого слова"""
     # Очищаем сценарий от Markdown, скобок и ремарок
     clean = re.sub(r'\[.*?\]', '', text)
     clean = re.sub(r'\(.*?\)', '', clean)
     clean = re.sub(r'#+\s*', '', clean)
+    clean = clean.strip()
     
     words = clean.split()
+    if not words:
+        words = ["AUTOSCRIPTOR", "SHORTS"]
+
+    # Автоматическая группировка в короткие виральные фразы (по 2-4 слова)
     chunks = []
     curr = []
     for w in words:
         curr.append(w)
-        # Группируем по 3-5 слов или по знакам препинания для высокого темпа
-        if len(curr) >= 4 or w.endswith(('.', '!', '?', ':', ';')):
-            chunks.append(' '.join(curr))
+        if len(curr) >= 3 or w.endswith(('.', '!', '?', ':', ';')):
+            chunks.append(list(curr))
             curr = []
     if curr:
-        chunks.append(' '.join(curr))
-    
-    total_chars = max(1, sum(len(c) for c in chunks))
+        chunks.append(list(curr))
+
+    total_chars = max(1, sum(sum(len(w) for w in ch) for ch in chunks))
     time_per_char = duration / total_chars
+
+    # Цветовые схемы в формате ASS (&HAABBGGRR)
+    colors = {
+        'yellow': '&H0000FFFF', # Ярко-желтый Hormozi
+        'green':  '&H0000FF66', # Неоновый зеленый
+        'cyan':   '&H00FFFF00', # Ярко-голубой MrBeast
+        'pink':   '&H00FF33FF'  # Неоновый розовый
+    }
+    active_color = colors.get(color, '&H0000FFFF')
+
+    # Стили CapCut
+    style_configs = {
+        'hormozi': {
+            'font': 'Arial Black',
+            'size': '54',
+            'primary': active_color,
+            'secondary': '&H00FFFFFF', # Белый неактивный
+            'outline': '&H00000000',
+            'outline_size': '6',
+            'shadow': '2',
+            'margin_v': '340'
+        },
+        'mrbeast': {
+            'font': 'Impact',
+            'size': '58',
+            'primary': '&H0000F0FF',
+            'secondary': '&H00FFFFFF',
+            'outline': '&H00000000',
+            'outline_size': '7',
+            'shadow': '4',
+            'margin_v': '340'
+        },
+        'cyber': {
+            'font': 'Arial',
+            'size': '52',
+            'primary': '&H00FF00FF',
+            'secondary': '&H00E0E0E0',
+            'outline': '&H00201000',
+            'outline_size': '4',
+            'shadow': '3',
+            'margin_v': '340'
+        }
+    }
+    cfg = style_configs.get(style, style_configs['hormozi'])
 
     ass_lines = [
         '[Script Info]',
@@ -77,7 +125,7 @@ def create_subtitles(text, duration, ass_path):
         '',
         '[V4+ Styles]',
         'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-        'Style: Default,Arial,52,&H0000FFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,1,0,1,5,0,2,30,30,340,1',
+        f"Style: CapCut,{cfg['font']},{cfg['size']},{cfg['primary']},{cfg['secondary']},{cfg['outline']},&H80000000,-1,0,0,0,100,100,1,0,1,{cfg['outline_size']},{cfg['shadow']},2,30,30,{cfg['margin_v']},1",
         '',
         '[Events]',
         'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text'
@@ -89,12 +137,21 @@ def create_subtitles(text, duration, ass_path):
         return f"0:{m:02d}:{s:05.2f}"
 
     cur_time = 0.0
-    for c in chunks:
-        chunk_dur = len(c) * time_per_char
+    for ch in chunks:
+        ch_chars = sum(len(w) for w in ch)
+        chunk_dur = ch_chars * time_per_char
         start_t = cur_time
         end_t = min(duration, cur_time + chunk_dur)
         cur_time = end_t
-        ass_lines.append(f"Dialogue: 0,{fmt(start_t)},{fmt(end_t)},Default,,0,0,0,,{c.upper()}")
+
+        # Формируем караоке-теги \k для каждого слова во фразе
+        karaoke_words = []
+        for w in ch:
+            word_cs = max(15, int(round(len(w) * time_per_char * 100)))
+            clean_w = re.sub(r'[^\w\s\-\!\?]', '', w).upper()
+            karaoke_words.append(f"{{\\k{word_cs}}}{clean_w} ")
+
+        ass_lines.append(f"Dialogue: 0,{fmt(start_t)},{fmt(end_t)},CapCut,,0,0,0,,{''.join(karaoke_words).strip()}")
 
     with open(ass_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(ass_lines) + '\n')
@@ -221,12 +278,16 @@ class AutoScriptorHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": {"message": str(e)}}).encode('utf-8'))
 
-        # 3. Рендеринг видеоролика (FFmpeg)
+        # 3. Рендеринг видеоролика (FFmpeg с CapCut караоке и Punch Zoom)
         elif self.path == '/api/render-video':
             try:
                 payload = json.loads(post_data.decode('utf-8'))
                 audio_id = payload.get('audio_id')
                 style = payload.get('style', 'cyber')
+                caption_style = payload.get('caption_style', 'hormozi')
+                highlight_color = payload.get('highlight_color', 'yellow')
+                punch_zoom = payload.get('punch_zoom', True)
+                script_text = payload.get('text', '')
 
                 if not audio_id:
                     raise ValueError("audio_id не передан")
@@ -239,6 +300,10 @@ class AutoScriptorHandler(http.server.SimpleHTTPRequestHandler):
                 if not os.path.exists(audio_path):
                     raise FileNotFoundError("Аудиофайл не найден. Сначала выполните озвучку.")
 
+                duration = get_audio_duration(audio_path)
+                if script_text:
+                    create_subtitles(script_text, duration, ass_path, style=caption_style, color=highlight_color)
+
                 # Выбор цвета фона
                 bg_colors = {
                     "cyber": "0x0b0f19",
@@ -250,7 +315,15 @@ class AutoScriptorHandler(http.server.SimpleHTTPRequestHandler):
 
                 # Экранирование пути к файлу субтитров для FFmpeg
                 escaped_ass = ass_path.replace('\\', '/').replace(':', '\\:')
-                vf_filter = f"ass='{escaped_ass}'" if os.path.exists(ass_path) else "null"
+                
+                # Фильтр видео: Punch Zoom (динамический наезд камеры) + CapCut субтитры
+                filters = []
+                if punch_zoom:
+                    filters.append("zoompan=z='min(zoom+0.0012,1.12)':d=150:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=720x1280:fps=30")
+                if os.path.exists(ass_path):
+                    filters.append(f"ass='{escaped_ass}'")
+                
+                vf_filter = ",".join(filters) if filters else "null"
 
                 cmd = [
                     FFMPEG_BIN, "-y",
@@ -262,12 +335,12 @@ class AutoScriptorHandler(http.server.SimpleHTTPRequestHandler):
                     "-preset", "ultrafast",
                     "-pix_fmt", "yuv420p",
                     "-c:a", "aac",
-                    "-strict", "-2",
+                    "-b:a", "192k",
                     "-shortest",
                     output_path
                 ]
 
-                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
                 if proc.returncode != 0:
                     raise RuntimeError(f"FFmpeg error: {proc.stderr[:300]}")
 
