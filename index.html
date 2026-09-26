@@ -4132,10 +4132,15 @@ async function callAI(provider, key, text) {
           btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Запись в Галерею...</span>`;
           const reader = new FileReader();
           reader.onloadend = () => {
-            const base64Data = reader.result;
-            AndroidBridge.saveVideo(base64Data, filename, mimeType);
+            const rawRes = reader.result;
+            // Надежно извлекаем чистую Base64 строку без data: префикса
+            const cleanBase64 = (typeof rawRes === 'string' && rawRes.indexOf(';base64,') !== -1)
+              ? rawRes.substring(rawRes.indexOf(';base64,') + 8)
+              : (rawRes.indexOf(',') !== -1 ? rawRes.split(',').pop() : rawRes);
+
+            AndroidBridge.saveVideo(cleanBase64, filename, mimeType);
             btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span>Сохранено в Галерею!</span>`;
-            showExportModal(filename, 'android', base64Data, mimeType, null);
+            showExportModal(filename, 'android', cleanBase64, mimeType, null);
             setTimeout(() => { btn.innerHTML = originalHtml; }, 3500);
           };
           reader.readAsDataURL(videoBlob);
