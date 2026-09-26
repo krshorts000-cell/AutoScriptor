@@ -3935,12 +3935,12 @@ async function callAI(provider, key, text) {
       const originalHtml = btn.innerHTML;
 
       if (isAndroid) {
-        AndroidBridge.showToast("🎬 Начинаем рендеринг видео 9:16 со стилями CapCut...");
+        AndroidBridge.showToast("🎬 Начинаем рендеринг видео 9:16 со звуком (голос + музыка + SFX)...");
       }
 
       btn.disabled = true;
       btn.classList.add('opacity-75');
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Рендеринг 9:16...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Подготовка аудио/видео...</span>`;
 
       try {
         if (!window.MediaRecorder) {
@@ -3960,34 +3960,93 @@ async function callAI(provider, key, text) {
         }
         const ctx = canvas.getContext('2d');
 
-        const stream = canvas.captureStream(30);
-
+        // Инициализируем Web Audio API и возобновляем контекст
         initWebAudio();
-        const dest = webAudioCtx.createMediaStreamDestination();
-        if (bgmGainNode) bgmGainNode.connect(dest);
+        if (webAudioCtx && webAudioCtx.state === 'suspended') {
+          await webAudioCtx.resume();
+        }
 
-        // Подключаем речь (TTS) к MediaStream, если возможно
-        const ttsAudio = document.getElementById('ttsAudioPlayer');
-        if (ttsAudio && !ttsAudio._webaudio_source) {
+        // Создаем мастер-направление для записи звука
+        const dest = webAudioCtx.createMediaStreamDestination();
+        window._exportMediaDest = dest;
+
+        // 1. Подключаем фоновую музыку (BGM 16-step beat machine) к записи
+        if (bgmGainNode) {
           try {
-            ttsAudio._webaudio_source = webAudioCtx.createMediaElementSource(ttsAudio);
-            ttsAudio._webaudio_source.connect(webAudioCtx.destination);
-            ttsAudio._webaudio_source.connect(dest);
+            bgmGainNode.connect(dest);
           } catch(e) {
-            console.warn('Audio element source connect:', e);
+            console.warn("BGM connect to dest:", e);
           }
         }
 
+        // 2. Подключаем голос диктора: декодируем AudioBuffer для 100% надежного звука без CORS
+        let voiceBufferSource = null;
+        const ttsAudio = document.getElementById('ttsAudioPlayer');
+        if (currentAudioUrl) {
+          try {
+            const audioResp = await fetch(currentAudioUrl);
+            const arrayBuf = await audioResp.arrayBuffer();
+            const decodedBuf = await webAudioCtx.decodeAudioData(arrayBuf);
+
+            voiceBufferSource = webAudioCtx.createBufferSource();
+            voiceBufferSource.buffer = decodedBuf;
+            voiceBufferSource.connect(webAudioCtx.destination);
+            voiceBufferSource.connect(dest);
+          } catch (e) {
+            console.warn("decodeAudioData for voice failed, falling back to mediaElementSource:", e);
+            if (ttsAudio) {
+              try {
+                if (!ttsAudio._webaudio_source) {
+                  ttsAudio._webaudio_source = webAudioCtx.createMediaElementSource(ttsAudio);
+                  ttsAudio._webaudio_source.connect(webAudioCtx.destination);
+                }
+                ttsAudio._webaudio_source.connect(dest);
+              } catch (err) {
+                console.warn("MediaElementSource fallback error:", err);
+              }
+            }
+          }
+        }
+
+        // 3. Создаем объединенный MediaStream: ВИДЕО (холст) + АУДИО (речь, музыка, SFX)
+        const videoStream = canvas.captureStream(30);
+        const audioTracks = dest.stream.getAudioTracks();
+
+        if (audioTracks.length === 0) {
+          console.warn("Warning: No audio tracks in destination stream");
+        }
+
+        const combinedStream = new MediaStream([
+          ...videoStream.getVideoTracks(),
+          ...audioTracks
+        ]);
+
+        // 4. Подбор лучшего поддерживаемого MIME-типа с аудиокодеком (AAC / Opus)
         let mimeType = 'video/webm';
-        if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) mimeType = 'video/mp4';
-        else if (MediaRecorder.isTypeSupported('video/mp4')) mimeType = 'video/mp4';
-        else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) mimeType = 'video/webm;codecs=vp9';
+        const mimeCandidates = [
+          'video/mp4;codecs=avc1,mp4a.40.2',
+          'video/mp4;codecs=avc1,opus',
+          'video/mp4',
+          'video/webm;codecs=vp9,opus',
+          'video/webm;codecs=vp8,opus',
+          'video/webm'
+        ];
+        for (const cand of mimeCandidates) {
+          if (MediaRecorder.isTypeSupported(cand)) {
+            mimeType = cand;
+            break;
+          }
+        }
 
-        const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6000000 });
+        const recorder = new MediaRecorder(combinedStream, {
+          mimeType,
+          videoBitsPerSecond: 6000000,
+          audioBitsPerSecond: 128000
+        });
+
         const chunks = [];
-
         recorder.ondataavailable = e => {
-          if (e.data.size > 0) chunks.push(e.data);
+          if (e.data && e.data.size > 0) chunks.push(e.data);
         };
 
         const recordPromise = new Promise((resolve, reject) => {
@@ -3998,20 +4057,26 @@ async function callAI(provider, key, text) {
           recorder.onerror = reject;
         });
 
-        recorder.start();
+        recorder.start(100); // Сохраняем чанки каждые 100мс
         seekCapCut(0);
         playCapCut();
 
-        const startTime = performance.now();
-        const totalDur = audioDuration;
+        // Запускаем воспроизведение буфера речи синхронно с записью
+        if (voiceBufferSource) {
+          try {
+            voiceBufferSource.start(0);
+          } catch(e) {}
+        }
 
-        window._exportMediaDest = dest;
+        const startTime = performance.now();
+        const totalDur = Math.max(3, audioDuration);
+
         function recordLoop() {
           const elapsed = (performance.now() - startTime) / 1000;
           const progPct = Math.min(99, Math.round((elapsed / Math.max(1, totalDur)) * 100));
-          btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Рендеринг ${progPct}%...</span>`;
+          btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Рендеринг со звуком ${progPct}%...</span>`;
           
-          // 1. Отрисовка фона (видео, картинка или выбранный градиент)
+          // 1. Отрисовка живого фона 60fps
           const bgVideo = document.getElementById('capcutBgVideo');
           const bgImage = document.getElementById('capcutBgImage');
           if (bgVideo && !bgVideo.classList.contains('hidden') && bgVideo.readyState >= 2) {
@@ -4020,7 +4085,6 @@ async function callAI(provider, key, text) {
             ctx.drawImage(bgImage, 0, 0, width, height);
           } else {
             const bgVal = document.getElementById('capcutBgSelect')?.value || 'cyber';
-            // Рендерим живой 60FPS анимированный фон в высоком разрешении 9:16
             drawAnimatedBackground(ctx, width, height, elapsed, bgVal);
           }
 
@@ -4034,7 +4098,7 @@ async function callAI(provider, key, text) {
             ctx.fillRect(0, 0, width, height);
           }
 
-          // 3. Пленочное зерно (если включено)
+          // 3. Пленочное зерно
           const grainToggle = document.getElementById('capcutGrainToggle')?.checked;
           if (grainToggle) {
             ctx.fillStyle = 'rgba(255,255,255,0.03)';
@@ -4045,7 +4109,7 @@ async function callAI(provider, key, text) {
             }
           }
 
-          // 4. Пословные субтитры Hormozi Караоке
+          // 4. Пословные караоке-субтитры
           if (capcutPhrases.length > 0) {
             const activeP = capcutPhrases.find(p => elapsed >= p.start && elapsed <= p.end) || capcutPhrases[0];
             const highlightColor = document.getElementById('capcutColorSelect')?.value || '#FFDE59';
@@ -4085,6 +4149,9 @@ async function callAI(provider, key, text) {
           if (elapsed < totalDur && isCapcutPlaying) {
             requestAnimationFrame(recordLoop);
           } else {
+            if (voiceBufferSource) {
+              try { voiceBufferSource.stop(); } catch(e){}
+            }
             recorder.stop();
             pauseCapCut();
           }
@@ -4093,7 +4160,8 @@ async function callAI(provider, key, text) {
         requestAnimationFrame(recordLoop);
 
         const videoBlob = await recordPromise;
-        const filename = `AutoScriptor_Short_${Date.now()}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`;
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const filename = `AutoScriptor_Short_${Date.now()}.${ext}`;
 
         if (isAndroid && window.AndroidBridge && typeof AndroidBridge.saveVideo === 'function') {
           btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Запись в Галерею...</span>`;
@@ -4133,12 +4201,6 @@ async function callAI(provider, key, text) {
         btn.innerHTML = originalHtml;
       }
     }
-
-    
-    // ==============================================
-    // 📁 МОДАЛЬНОЕ ОКНО И УВЕДОМЛЕНИЕ О ВЫГРУЗКЕ ВИДЕО
-    // ==============================================
-    let lastExportData = { base64Data: null, filename: null, mimeType: null, blobUrl: null };
 
     function showExportModal(filename, platform, base64Data, mimeType, blobUrl) {
       lastExportData = { base64Data, filename, mimeType, blobUrl };
