@@ -1089,6 +1089,19 @@
     const isAndroid = typeof AndroidBridge !== 'undefined';
 
     const fetchCallbacks = {};
+
+    // ==============================================
+    // 🎛️ ГЛОБАЛЬНОЕ СОСТОЯНИЕ АУДИО И CAPCUT STUDIO
+    // ==============================================
+    let webAudioCtx = null;
+    let bgmGainNode = null;
+    let bgmOscillators = [];
+    let isCapcutPlaying = false;
+    let capcutRaf = null;
+    let audioDuration = 15;
+    let capcutPhrases = [];
+    let currentAudioUrl = null;
+    let currentAiData = null;
     window.__androidFetchCallback = (requestId, status, data, error, isBinary = false) => {
       const cb = fetchCallbacks[requestId];
       if (!cb) return;
@@ -2542,7 +2555,10 @@ async function callAI(provider, key, text) {
       const toggle = document.getElementById('capcutSfxToggle');
       if (toggle && !toggle.checked) return;
       initWebAudio();
-      if (webAudioCtx.state === 'suspended') webAudioCtx.resume();
+      if (!webAudioCtx) return;
+      if (webAudioCtx.state === 'suspended') {
+        webAudioCtx.resume().catch(() => {});
+      }
       const now = webAudioCtx.currentTime;
 
       try {
@@ -3049,17 +3065,27 @@ async function callAI(provider, key, text) {
     // ==============================================
     function initWebAudio() {
       if (!webAudioCtx) {
-        webAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        bgmGainNode = webAudioCtx.createGain();
-        bgmGainNode.connect(webAudioCtx.destination);
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          try {
+            webAudioCtx = new AudioContextClass();
+            bgmGainNode = webAudioCtx.createGain();
+            bgmGainNode.connect(webAudioCtx.destination);
+          } catch (e) {
+            console.warn("WebAudio init error:", e);
+          }
+        }
       }
     }
 
     function playBgmAudio() {
-      const bgmType = document.getElementById('capcutBgmSelect').value;
+      const bgmType = document.getElementById('capcutBgmSelect')?.value || 'none';
       if (bgmType === 'none') return;
       initWebAudio();
-      if (webAudioCtx.state === 'suspended') webAudioCtx.resume();
+      if (!webAudioCtx) return;
+      if (webAudioCtx.state === 'suspended') {
+        webAudioCtx.resume().catch(() => {});
+      }
 
       updateBgmVolume();
       stopBgmAudio();
@@ -3092,10 +3118,11 @@ async function callAI(provider, key, text) {
     }
 
     function updateBgmVolume() {
-      if (!bgmGainNode) return;
-      const vol = document.getElementById('capcutBgmVolume').value / 100;
-      // Авто-приглушение (Ducking)
-      bgmGainNode.gain.setValueAtTime(vol * 0.15, webAudioCtx ? webAudioCtx.currentTime : 0);
+      if (!bgmGainNode || !webAudioCtx) return;
+      const vol = (document.getElementById('capcutBgmVolume')?.value || 25) / 100;
+      try {
+        bgmGainNode.gain.setValueAtTime(vol * 0.15, webAudioCtx.currentTime);
+      } catch (e) {}
     }
 
     function updateBgmTrack() {
