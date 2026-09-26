@@ -1091,6 +1091,101 @@
     let capcutPhrases = [];
     let currentAudioUrl = null;
     let currentAiData = null;
+    let currentAudioBuffer = null;
+    let lastVoicedScript = null;
+    window.currentAudioBuffer = null;
+    window._lastVoicedScript = null;
+    window._isVoiceRecordingPlaying = false;
+
+    const ttsFileCallbacks = {};
+    window.__androidTtsFileCallback = (requestId, dataUrl, error) => {
+      const cb = ttsFileCallbacks[requestId];
+      if (!cb) return;
+      delete ttsFileCallbacks[requestId];
+      if (error || !dataUrl) {
+        cb.reject(new Error(error || "Ошибка нативного TTS синтеза"));
+      } else {
+        cb.resolve(dataUrl);
+      }
+    };
+
+    function base64ToUint8Array(b64) {
+      if (!b64) return new Uint8Array(0);
+      const clean = (b64.indexOf(';base64,') !== -1)
+        ? b64.substring(b64.indexOf(';base64,') + 8)
+        : (b64.indexOf(',') !== -1 ? b64.split(',').pop() : b64);
+      const binaryStr = window.atob(clean.replace(/\s/g, ''));
+      const len = binaryStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    function concatUint8Arrays(arrays) {
+      let totalLength = 0;
+      for (const arr of arrays) {
+        totalLength += arr.length;
+      }
+      const result = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const arr of arrays) {
+        result.set(arr, offset);
+        offset += arr.length;
+      }
+      return result;
+    }
+
+    function splitTextForTts(text, maxChunkLen = 160) {
+      if (!text || text.length <= maxChunkLen) return [text];
+      const sentences = text.match(/[^.!?\n;:]+([.!?\n;:]+|$)/g) || [text];
+      const chunks = [];
+      let currentChunk = '';
+
+      for (let s of sentences) {
+        s = s.trim();
+        if (!s) continue;
+        if ((currentChunk + ' ' + s).trim().length <= maxChunkLen) {
+          currentChunk = (currentChunk + ' ' + s).trim();
+        } else {
+          if (currentChunk) {
+            chunks.push(currentChunk);
+            currentChunk = '';
+          }
+          if (s.length > maxChunkLen) {
+            const subparts = s.split(/,\s+/);
+            for (let sub of subparts) {
+              sub = sub.trim();
+              if ((currentChunk + ', ' + sub).trim().length <= maxChunkLen) {
+                currentChunk = currentChunk ? (currentChunk + ', ' + sub) : sub;
+              } else {
+                if (currentChunk) chunks.push(currentChunk);
+                if (sub.length > maxChunkLen) {
+                  const words = sub.split(/\s+/);
+                  let wordChunk = '';
+                  for (const w of words) {
+                    if ((wordChunk + ' ' + w).trim().length <= maxChunkLen) {
+                      wordChunk = (wordChunk + ' ' + w).trim();
+                    } else {
+                      if (wordChunk) chunks.push(wordChunk);
+                      wordChunk = w;
+                    }
+                  }
+                  if (wordChunk) currentChunk = wordChunk;
+                } else {
+                  currentChunk = sub;
+                }
+              }
+            }
+          } else {
+            currentChunk = s;
+          }
+        }
+      }
+      if (currentChunk) chunks.push(currentChunk);
+      return chunks.filter(c => c.length > 0);
+    }
 // ==============================================
     // 🔥 КАРТА ВИРУСНЫХ ЭМОДЗИ ДЛЯ СУБТИТРОВ CAPCUT
     // ==============================================
@@ -2675,11 +2770,46 @@ async function callAI(provider, key, text) {
     // ==============================================
     
     // ==============================================
-    // 🎙 СИНТЕЗАТОР БЕСПЛАТНОГО ИИ-ГОЛОСА (GOOGLE HQ + WEB AUDIO)
+    // 🎙 СИНТЕЗ ОЗВУЧКИ ДИКТОРА
     // ==============================================
-    async function synthesizeFreeTts(rawText) {
-      const voice = document.getElementById('ttsVoiceSelect')?.value || 'ru_hq';
-      const clean = rawText
+
+    /**
+     * Вызывает нативный Android TextToSpeech для генерации WAV файла и декодирует его в AudioBuffer.
+     */
+    async function synthesizeAndroidNativeTts(text, lang = 'ru') {
+      return new Promise((resolve, reject) => {
+        const reqId = 'tts_' + Math.random().toString(36).substring(7);
+        ttsFileCallbacks[reqId] = {
+          resolve: async (dataUrl) => {
+            try {
+              initWebAudio();
+              const bytes = base64ToUint8Array(dataUrl);
+              const decodedBuf = await webAudioCtx.decodeAudioData(bytes.buffer.slice(0));
+              const blob = new Blob([bytes], { type: 'audio/wav' });
+              currentAudioUrl = URL.createObjectURL(blob);
+              resolve(decodedBuf);
+            } catch (err) {
+              reject(err);
+            }
+          },
+          reject: (err) => reject(err)
+        };
+        AndroidBridge.synthesizeSpeechToFile(reqId, text, 1.1, lang);
+      });
+    }
+
+    /**
+     * Универсальный синтезатор речи диктора.
+     * Возвращает полностью декодированный AudioBuffer (window.currentAudioBuffer)
+     * и вычисляет точную длительность для видеодорожки и караоке-субтитров.
+     */
+    async function synthesizeSpeechBuffer(rawText) {
+      initWebAudio();
+      if (webAudioCtx && webAudioCtx.state === 'suspended') {
+        await webAudioCtx.resume().catch(() => {});
+      }
+
+      const cleanText = rawText
         .replace(/\[.*?\]/g, '')
         .replace(/#+/g, '')
         .replace(/[*_~`]/g, '')
@@ -2687,84 +2817,139 @@ async function callAI(provider, key, text) {
         .replace(/\s+/g, ' ')
         .trim();
 
-      const lang = voice.startsWith('en') ? 'en' : 'ru';
-      const queryText = clean.substring(0, 195);
-      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(queryText)}`;
-      const player = document.getElementById('ttsAudioPlayer');
+      if (!cleanText) throw new Error("Текст для озвучки пуст. Введите или сгенерируйте сценарий.");
 
-      if (isAndroid) {
-        try {
-          const res = await executeRequest(ttsUrl, 'GET', { "User-Agent": "Mozilla/5.0" }, null);
-          if (res.ok && res.dataUrl) {
-            currentAudioUrl = res.dataUrl;
-            player.src = currentAudioUrl;
-            return new Promise((resolve) => {
-              player.onloadedmetadata = () => {
-                audioDuration = player.duration || 18;
-                buildCapCutPhrases(clean, audioDuration);
-                toggleCapCutPlay();
-                AndroidBridge.showToast("🎙 Голос успешно озвучен!");
-                resolve();
-              };
-              player.onerror = () => {
-                AndroidBridge.speak(clean, 1.15);
-                audioDuration = Math.max(12, Math.round(clean.length / 14));
-                buildCapCutPhrases(clean, audioDuration);
-                toggleCapCutPlay();
-                resolve();
-              };
-              player.load();
-            });
+      const engine = document.getElementById('ttsEngine')?.value || 'free';
+      const voice = document.getElementById('ttsVoiceSelect')?.value || 'ru_hq';
+      const lang = voice.startsWith('en') ? 'en' : 'ru';
+
+      let audioBuf = null;
+
+      if (engine === 'free') {
+        // Бесплатный ИИ-голос: многосегментный синтез (Google HQ) с нарезкой по предложениям
+        const chunks = splitTextForTts(cleanText, 160);
+        const chunkByteArrays = [];
+        let googleSuccess = true;
+
+        for (let i = 0; i < chunks.length; i++) {
+          const chunk = chunks[i];
+          const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(chunk)}`;
+          try {
+            if (isAndroid) {
+              const res = await executeRequest(ttsUrl, 'GET', { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }, null);
+              if (res.ok && res.dataUrl) {
+                chunkByteArrays.push(base64ToUint8Array(res.dataUrl));
+              } else {
+                googleSuccess = false;
+                break;
+              }
+            } else {
+              const res = await fetch(ttsUrl);
+              if (res.ok) {
+                const ab = await res.arrayBuffer();
+                chunkByteArrays.push(new Uint8Array(ab));
+              } else {
+                googleSuccess = false;
+                break;
+              }
+            }
+          } catch (e) {
+            console.warn(`Chunk ${i} TTS error:`, e);
+            googleSuccess = false;
+            break;
           }
-        } catch (e) {
-          console.warn("Android native TTS fetch error:", e);
         }
+
+        if (googleSuccess && chunkByteArrays.length > 0) {
+          const combinedBytes = concatUint8Arrays(chunkByteArrays);
+          audioBuf = await webAudioCtx.decodeAudioData(combinedBytes.buffer.slice(0));
+          const blob = new Blob([combinedBytes], { type: 'audio/mpeg' });
+          currentAudioUrl = URL.createObjectURL(blob);
+        } else {
+          // Fallback на нативный синтезатор устройства
+          if (isAndroid && window.AndroidBridge && typeof AndroidBridge.synthesizeSpeechToFile === 'function') {
+            audioBuf = await synthesizeAndroidNativeTts(cleanText, lang);
+          } else {
+            throw new Error("Не удалось загрузить бесплатный голос. Проверьте интернет или выберите другой голос.");
+          }
+        }
+
+      } else if (engine === 'device') {
+        if (isAndroid && window.AndroidBridge && typeof AndroidBridge.synthesizeSpeechToFile === 'function') {
+          audioBuf = await synthesizeAndroidNativeTts(cleanText, lang);
+        } else {
+          // Для десктопа: перенаправляем на Google HQ
+          const chunks = splitTextForTts(cleanText, 160);
+          const chunkByteArrays = [];
+          for (let chunk of chunks) {
+            const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(chunk)}`;
+            const res = await fetch(ttsUrl);
+            if (res.ok) {
+              const ab = await res.arrayBuffer();
+              chunkByteArrays.push(new Uint8Array(ab));
+            }
+          }
+          if (chunkByteArrays.length > 0) {
+            const combinedBytes = concatUint8Arrays(chunkByteArrays);
+            audioBuf = await webAudioCtx.decodeAudioData(combinedBytes.buffer.slice(0));
+            currentAudioUrl = URL.createObjectURL(new Blob([combinedBytes], { type: 'audio/mpeg' }));
+          } else {
+            throw new Error("Синтез системного голоса не удался.");
+          }
+        }
+
+      } else if (engine === 'elevenlabs') {
+        const key = document.getElementById('keyElevenLabs')?.value.trim();
+        if (!key) throw new Error("Введите API-ключ ElevenLabs в настройках");
+
+        let voiceId = document.getElementById('ttsVoiceSelect')?.value;
+        const customId = document.getElementById('customVoiceElevenLabs')?.value.trim();
+        if (voiceId === 'custom' || customId) voiceId = customId || voiceId;
+
+        const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+        const headers = { "xi-api-key": key, "Content-Type": "application/json", "Accept": "audio/mpeg" };
+        const body = { text: cleanText, model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.5, similarity_boost: 0.8 } };
+
+        const res = await executeRequest(endpoint, 'POST', headers, body);
+        if (!res.ok || !res.dataUrl) throw new Error("Ошибка ElevenLabs API");
+
+        const bytes = base64ToUint8Array(res.dataUrl);
+        audioBuf = await webAudioCtx.decodeAudioData(bytes.buffer.slice(0));
+        currentAudioUrl = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
+
+      } else if (engine === 'openai') {
+        const key = document.getElementById('keyOpenAI')?.value.trim();
+        if (!key) throw new Error("Введите API-ключ OpenAI в настройках");
+
+        const voice = document.getElementById('ttsVoiceSelect')?.value || 'onyx';
+        const endpoint = "https://api.openai.com/v1/audio/speech";
+        const headers = { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" };
+        const body = { model: "tts-1", input: cleanText, voice: voice };
+
+        const res = await executeRequest(endpoint, 'POST', headers, body);
+        if (!res.ok || !res.dataUrl) throw new Error("Ошибка OpenAI TTS");
+
+        const bytes = base64ToUint8Array(res.dataUrl);
+        audioBuf = await webAudioCtx.decodeAudioData(bytes.buffer.slice(0));
+        currentAudioUrl = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
       }
 
-      // Web / Browser mode
-      return new Promise((resolve) => {
-        currentAudioUrl = ttsUrl;
+      if (!audioBuf) {
+        throw new Error("Не удалось получить аудиодорожку озвучки");
+      }
+
+      window.currentAudioBuffer = audioBuf;
+      window._lastVoicedScript = rawText.trim();
+      audioDuration = audioBuf.duration;
+
+      const player = document.getElementById('ttsAudioPlayer');
+      if (player && currentAudioUrl) {
         player.src = currentAudioUrl;
+      }
 
-        let loaded = false;
-        player.onloadedmetadata = () => {
-          if (loaded) return;
-          loaded = true;
-          audioDuration = player.duration || 18;
-          buildCapCutPhrases(clean, audioDuration);
-          toggleCapCutPlay();
-          resolve();
-        };
-
-        player.onerror = () => {
-          if (loaded) return;
-          loaded = true;
-          console.warn("Google TTS stream fallback to Web Speech");
-          if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(clean);
-            u.lang = lang === 'en' ? 'en-US' : 'ru-RU';
-            window.speechSynthesis.speak(u);
-          }
-          audioDuration = Math.max(12, Math.round(clean.length / 14));
-          buildCapCutPhrases(clean, audioDuration);
-          toggleCapCutPlay();
-          resolve();
-        };
-
-        player.load();
-        setTimeout(() => {
-          if (!loaded) {
-            loaded = true;
-            audioDuration = Math.max(12, Math.round(clean.length / 14));
-            buildCapCutPhrases(clean, audioDuration);
-            toggleCapCutPlay();
-            resolve();
-          }
-        }, 1800);
-      });
+      buildCapCutPhrases(cleanText, audioDuration);
+      return audioBuf;
     }
-
 
     async function generateSpeech() {
       const scriptText = document.getElementById('resScript').innerText.trim();
@@ -2773,96 +2958,16 @@ async function callAI(provider, key, text) {
         return;
       }
 
-      const engine = document.getElementById('ttsEngine').value;
       const btn = document.getElementById('btnGenerateSpeech');
       const oldHtml = btn.innerHTML;
-
-      if (engine === 'free') {
-        btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Синтез голоса...</span>`;
-        try {
-          await synthesizeFreeTts(scriptText);
-        } catch (e) {
-          console.error("Free TTS error:", e);
-          if (isAndroid) AndroidBridge.showToast("⚠️ " + e.message); else alert("⚠️ " + e.message);
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = oldHtml;
-        }
-        return;
-      }
-
-      if (engine === 'device') {
-        if (isAndroid) {
-          AndroidBridge.speak(scriptText, 1.15);
-          AndroidBridge.showToast("🔊 Воспроизведение через телефон");
-        } else if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(scriptText);
-          u.lang = 'ru-RU';
-          window.speechSynthesis.speak(u);
-        }
-        buildCapCutPhrases(scriptText, 25);
-        toggleCapCutPlay();
-        return;
-      }
-
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Генерация голоса...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Синтез голоса...</span>`;
 
       try {
-        if (engine === 'elevenlabs') {
-          const key = document.getElementById('keyElevenLabs').value.trim();
-          if (!key) throw new Error("Введите API-ключ ElevenLabs в настройках");
-
-          let voiceId = document.getElementById('ttsVoiceSelect').value;
-          const customId = document.getElementById('customVoiceElevenLabs').value.trim();
-          if (voiceId === 'custom' || customId) voiceId = customId || voiceId;
-
-          const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
-          const headers = { "xi-api-key": key, "Content-Type": "application/json", "Accept": "audio/mpeg" };
-          const body = { text: scriptText, model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.5, similarity_boost: 0.8 } };
-
-          const res = await executeRequest(endpoint, 'POST', headers, body);
-          if (!res.ok) throw new Error("Ошибка ElevenLabs API");
-
-          currentAudioUrl = res.dataUrl;
-          const player = document.getElementById('ttsAudioPlayer');
-          player.src = currentAudioUrl;
-
-          player.onloadedmetadata = () => {
-            audioDuration = player.duration || 15;
-            buildCapCutPhrases(scriptText, audioDuration);
-            toggleCapCutPlay();
-          };
-          player.load();
-          if (isAndroid) AndroidBridge.showToast("🎙 Голос ElevenLabs готов!");
-
-        } else if (engine === 'openai') {
-          const key = document.getElementById('keyOpenAI').value.trim();
-          if (!key) throw new Error("Введите API-ключ OpenAI в настройках");
-
-          const voice = document.getElementById('ttsVoiceSelect').value || 'onyx';
-          const endpoint = "https://api.openai.com/v1/audio/speech";
-          const headers = { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" };
-          const body = { model: "tts-1", input: scriptText, voice: voice };
-
-          const res = await executeRequest(endpoint, 'POST', headers, body);
-          if (!res.ok) throw new Error("Ошибка OpenAI TTS");
-
-          currentAudioUrl = res.dataUrl;
-          const player = document.getElementById('ttsAudioPlayer');
-          player.src = currentAudioUrl;
-
-          player.onloadedmetadata = () => {
-            audioDuration = player.duration || 15;
-            buildCapCutPhrases(scriptText, audioDuration);
-            toggleCapCutPlay();
-          };
-          player.load();
-          if (isAndroid) AndroidBridge.showToast("🎙 Голос OpenAI готов!");
-        }
-
+        const buf = await synthesizeSpeechBuffer(scriptText);
+        toggleCapCutPlay();
+        const durationSec = buf.duration.toFixed(1);
+        if (isAndroid) AndroidBridge.showToast(`🎙 Голос готов! (${durationSec} сек)`);
       } catch (err) {
         const msg = err.message || "Ошибка озвучки";
         if (isAndroid) AndroidBridge.showToast("⚠️ " + msg); else alert("⚠️ " + msg);
@@ -3561,7 +3666,7 @@ async function callAI(provider, key, text) {
 
       // Авто-даккинг фоновой музыки под голос (голос на переднем плане)
       const ttsPlayer = document.getElementById('ttsAudioPlayer');
-      const isVoiceSpeaking = ttsPlayer && !ttsPlayer.paused && currentAudioUrl;
+      const isVoiceSpeaking = (ttsPlayer && !ttsPlayer.paused && currentAudioUrl) || !!window._isVoiceRecordingPlaying;
       if (bgmGainNode && webAudioCtx) {
         const userVol = (document.getElementById('capcutBgmVolume')?.value || 25) / 100;
         const duckedVol = isVoiceSpeaking ? (userVol * 0.08) : (userVol * 0.22);
@@ -3899,18 +4004,29 @@ async function callAI(provider, key, text) {
       const btn = document.getElementById('btnExportCapCut');
       const originalHtml = btn.innerHTML;
 
-      if (isAndroid) {
-        AndroidBridge.showToast("🎬 Начинаем рендеринг видео 9:16 со звуком (голос + музыка + SFX)...");
+      const scriptText = (document.getElementById('resScript')?.innerText || '').trim();
+      if (!scriptText) {
+        if (isAndroid) AndroidBridge.showToast("❌ Сценарий пуст. Сначала введите или сгенерируйте сценарий");
+        else alert("❌ Сценарий пуст. Сначала введите или сгенерируйте сценарий");
+        return;
       }
 
       btn.disabled = true;
       btn.classList.add('opacity-75');
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Подготовка аудио/видео...</span>`;
 
       try {
         if (!window.MediaRecorder) {
           throw new Error("MediaRecorder не поддерживается на вашем устройстве");
         }
+
+        // 1. АВТОМАТИЧЕСКАЯ ГЕНЕРАЦИЯ ГОЛОСА ВМЕСТЕ С ВИДЕОДОРОЖКОЙ
+        if (!window.currentAudioBuffer || window._lastVoicedScript !== scriptText) {
+          btn.innerHTML = `<i class="fa-solid fa-microphone-lines animate-pulse text-indigo-400"></i> <span>Генерация озвучки диктора...</span>`;
+          if (isAndroid) AndroidBridge.showToast("🎙 Синтезируем голос диктора для видео...");
+          await synthesizeSpeechBuffer(scriptText);
+        }
+
+        btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Подготовка дорожек...</span>`;
 
         const width = 720;
         const height = 1280;
@@ -3925,17 +4041,16 @@ async function callAI(provider, key, text) {
         }
         const ctx = canvas.getContext('2d');
 
-        // Инициализируем Web Audio API и возобновляем контекст
+        // 2. Инициализируем Web Audio API и мастер-выход для записи
         initWebAudio();
         if (webAudioCtx && webAudioCtx.state === 'suspended') {
           await webAudioCtx.resume();
         }
 
-        // Создаем мастер-направление для записи звука
         const dest = webAudioCtx.createMediaStreamDestination();
         window._exportMediaDest = dest;
 
-        // 1. Подключаем фоновую музыку (BGM 16-step beat machine) к записи
+        // 3. Подключаем фоновую музыку (BGM 16-step beat machine) к записи
         if (bgmGainNode) {
           try {
             bgmGainNode.connect(dest);
@@ -3944,36 +4059,16 @@ async function callAI(provider, key, text) {
           }
         }
 
-        // 2. Подключаем голос диктора: декодируем AudioBuffer для 100% надежного звука без CORS
+        // 4. Подключаем голос диктора напрямую из декодированного AudioBuffer
         let voiceBufferSource = null;
-        const ttsAudio = document.getElementById('ttsAudioPlayer');
-        if (currentAudioUrl) {
-          try {
-            const audioResp = await fetch(currentAudioUrl);
-            const arrayBuf = await audioResp.arrayBuffer();
-            const decodedBuf = await webAudioCtx.decodeAudioData(arrayBuf);
-
-            voiceBufferSource = webAudioCtx.createBufferSource();
-            voiceBufferSource.buffer = decodedBuf;
-            voiceBufferSource.connect(webAudioCtx.destination);
-            voiceBufferSource.connect(dest);
-          } catch (e) {
-            console.warn("decodeAudioData for voice failed, falling back to mediaElementSource:", e);
-            if (ttsAudio) {
-              try {
-                if (!ttsAudio._webaudio_source) {
-                  ttsAudio._webaudio_source = webAudioCtx.createMediaElementSource(ttsAudio);
-                  ttsAudio._webaudio_source.connect(webAudioCtx.destination);
-                }
-                ttsAudio._webaudio_source.connect(dest);
-              } catch (err) {
-                console.warn("MediaElementSource fallback error:", err);
-              }
-            }
-          }
+        if (window.currentAudioBuffer) {
+          voiceBufferSource = webAudioCtx.createBufferSource();
+          voiceBufferSource.buffer = window.currentAudioBuffer;
+          voiceBufferSource.connect(dest); // В поток MediaRecorder
+          voiceBufferSource.connect(webAudioCtx.destination); // В динамик устройства для мониторинга
         }
 
-        // 3. Создаем объединенный MediaStream: ВИДЕО (холст) + АУДИО (речь, музыка, SFX)
+        // 5. Создаем объединенный MediaStream: ВИДЕО (холст) + АУДИО (речь, музыка, SFX)
         const videoStream = canvas.captureStream(30);
         const audioTracks = dest.stream.getAudioTracks();
 
@@ -3986,7 +4081,7 @@ async function callAI(provider, key, text) {
           ...audioTracks
         ]);
 
-        // 4. Подбор лучшего поддерживаемого MIME-типа с аудиокодеком (AAC / Opus)
+        // 6. Подбор лучшего поддерживаемого MIME-типа с аудиокодеком (AAC / Opus)
         let mimeType = 'video/webm';
         const mimeCandidates = [
           'video/mp4;codecs=avc1,mp4a.40.2',
@@ -4023,25 +4118,28 @@ async function callAI(provider, key, text) {
         });
 
         recorder.start(100); // Сохраняем чанки каждые 100мс
-        seekCapCut(0);
-        playCapCut();
+        window._isVoiceRecordingPlaying = true;
 
-        // Запускаем воспроизведение буфера речи синхронно с записью
+        // Запускаем воспроизведение голоса диктора синхронно со стартом видео
         if (voiceBufferSource) {
           try {
             voiceBufferSource.start(0);
           } catch(e) {}
         }
+        playBgmAudio();
 
         const startTime = performance.now();
-        const totalDur = Math.max(3, audioDuration);
+        const totalDur = Math.max(3, window.currentAudioBuffer ? window.currentAudioBuffer.duration : audioDuration);
 
         function recordLoop() {
           const elapsed = (performance.now() - startTime) / 1000;
           const progPct = Math.min(99, Math.round((elapsed / Math.max(1, totalDur)) * 100));
           btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Рендеринг со звуком ${progPct}%...</span>`;
           
-          // 1. Отрисовка живого фона 60fps
+          // Синхронизируем кадр превью на экране
+          renderCapCutFrame(elapsed);
+
+          // 1. Отрисовка живого фона 60fps на холст экспорта
           const bgVideo = document.getElementById('capcutBgVideo');
           const bgImage = document.getElementById('capcutBgImage');
           if (bgVideo && !bgVideo.classList.contains('hidden') && bgVideo.readyState >= 2) {
@@ -4111,14 +4209,16 @@ async function callAI(provider, key, text) {
             }
           }
 
-          if (elapsed < totalDur && isCapcutPlaying) {
+          if (elapsed < totalDur) {
             requestAnimationFrame(recordLoop);
           } else {
+            window._isVoiceRecordingPlaying = false;
             if (voiceBufferSource) {
               try { voiceBufferSource.stop(); } catch(e){}
             }
+            stopBgmAudio();
             recorder.stop();
-            pauseCapCut();
+            seekCapCut(0);
           }
         }
 
@@ -4166,6 +4266,7 @@ async function callAI(provider, key, text) {
         else alert("⚠️ " + (err.message || "Ошибка экспорта"));
       } finally {
         window._exportMediaDest = null;
+        window._isVoiceRecordingPlaying = false;
         btn.disabled = false;
         btn.classList.remove('opacity-75');
         btn.innerHTML = originalHtml;
